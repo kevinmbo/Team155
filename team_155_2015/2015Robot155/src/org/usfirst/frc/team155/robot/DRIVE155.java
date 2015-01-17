@@ -79,7 +79,7 @@ public class DRIVE155 {
 
 	    public void run(){
 	    	arcade();
-	    	//System.out.println("gyro = " + roboGyro.getAngle());
+	    	System.out.println("gyro = " + roboGyro.getAngle());
 	    	
 	    	System.out.println("distance = " + Front_Right_Encoder.get() + " Rate = " + Front_Right_Encoder.getRate());
 		}
