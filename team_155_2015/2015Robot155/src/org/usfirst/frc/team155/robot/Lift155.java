@@ -4,6 +4,8 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Victor;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Lift155 {
 	robotMap155 robotSystem;
@@ -12,7 +14,7 @@ public class Lift155 {
 	DigitalInput lowLimit;
 	DigitalInput highLimit;
 	Victor liftDrive;
-	
+	AnalogInput rangeFinder; 
 	
 	public Lift155(robotMap155 robot, Joystick right){
 		robotSystem = robot;
@@ -21,6 +23,7 @@ public class Lift155 {
         lowLimit = new DigitalInput(robot.LOW_LIMIT);
         highLimit = new DigitalInput(robot.HIGH_LIMIT);
 		liftDrive = new Victor(robot.LIFT_MOTOR);
+		rangeFinder = new AnalogInput(robot.RANGE_FINDER);
 	}
 	
 	
@@ -51,13 +54,21 @@ public class Lift155 {
 		
 	}
 	
-	
+	public double measureDistance(){
+		
+		double distance;
+		double scale =106.2;//48 inches/.452 volts
+		distance = rangeFinder.getVoltage()*scale;
+		return distance;
+	}
 	public void run(){
 		//call lift....
 		lift();
 		
 		//call grabber....
 		grabber();
+		
+		SmartDashboard.putNumber("Distance", measureDistance());
 	}
 
 }

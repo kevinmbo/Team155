@@ -22,7 +22,7 @@ public class Robot extends IterativeRobot {
 	DRIVE155 robotDrive;
 	Joystick rightStick;
 	Joystick leftStick;
-	
+	Autonomous Auto155;
 	
 	
 	
@@ -32,18 +32,19 @@ public class Robot extends IterativeRobot {
     	robot = new robotMap155();
     	robotLift = new Lift155(robot, rightStick);
     	robotDrive = new DRIVE155(leftStick, rightStick, robot);
-    	
+    	Auto155 = new Autonomous(robotDrive, robotLift, robot);
     }
     
     
     public void autonomousInit() {
-
+    	robotDrive.GyroReset();
+    	Auto155.state= Auto155.DRIVE0;
     }
     /**
      * This function is called periodically during autonomous
      */
     public void autonomousPeriodic() {
-
+    	Auto155.autoMode();
     }
 
     public void teleopInit() {
@@ -57,7 +58,8 @@ public class Robot extends IterativeRobot {
     		//call drive run() method
     		robotDrive.run();
     		//call lift run() method
-    		//robotLift.run();
+    		robotLift.run();
+    		
     }
     
     /**

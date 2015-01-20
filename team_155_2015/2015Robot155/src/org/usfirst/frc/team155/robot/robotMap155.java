@@ -43,12 +43,12 @@ public class robotMap155 {
     public final int HIGH_LIMIT = 1;
     public final int FRONT_RIGHT_ENCODER_A = 2;
     public final int FRONT_RIGHT_ENCODER_B = 3;
-    public final int DIG_IO_4 = 4;
-    public final int DIG_IO_5 = 5;
-    public final int DIG_IO_6 = 6;
-    public final int DIG_IO_7 = 7;
-    public final int DIG_IO_8 = 8;
-    public final int DIG_IO_9 = 9;
+    public final int FRONT_LEFT_ENCODER_A = 4;
+    public final int FRONT_LEFT_ENCODER_B = 5;
+    public final int BACK_RIGHT_ENCODER_A = 6;
+    public final int BACK_RIGHT_ENCODER_B = 7;
+    public final int BACK_LEFT_ENCODER_A = 8;
+    public final int BACK_LEFT_ENCODER_B = 9;
     //relays
     public final int RELAY_0 = 0;
     public final int RELAY_1 = 1;
@@ -57,10 +57,10 @@ public class robotMap155 {
 
     //ANALOGS
     public final int GYRO = 0;
-    public final int ANALOG_1 = 1;
+    public final int RANGE_FINDER = 1;
     public final int ANALOG_2 = 2;
     public final int ANALOG_3 = 3;
-
+    
 
     //declare inputs to be used in multiple objects here
     //	call as robotSystem.dig1.get();
