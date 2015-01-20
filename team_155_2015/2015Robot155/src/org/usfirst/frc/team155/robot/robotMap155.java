@@ -15,13 +15,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * @author kevin
  */
 public class robotMap155 {
-
+	
     //The constants to define robot connections
     //PWMs
 	public final int DRIVE_LEFT_FRONT = 0;
-    public final int DRIVE_LEFT_BACK = 1;
+    public final int DRIVE_LEFT_REAR = 1;
     public final int DRIVE_RIGHT_FRONT = 2;
-    public final int DRIVE_RIGHT_BACK = 3;
+    public final int DRIVE_RIGHT_REAR = 3;
     public final int LIFT_MOTOR = 4;
     public final int PWM5 = 5;
     public final int PWM6 = 6;
@@ -37,18 +37,37 @@ public class robotMap155 {
     public final int SOL_5 = 5;
     public final int SOL_6 = 6;
     public final int SOL_7 = 7;
-    //digital I/O
     
+    //digital I/O
     public final int LOW_LIMIT = 0;
     public final int HIGH_LIMIT = 1;
-    public final int FRONT_RIGHT_ENCODER_A = 2;
-    public final int FRONT_RIGHT_ENCODER_B = 3;
+    public final int DIG_IO_2 = 2;
+    public final int DIG_IO_3 = 3;
     public final int DIG_IO_4 = 4;
     public final int DIG_IO_5 = 5;
     public final int DIG_IO_6 = 6;
     public final int DIG_IO_7 = 7;
     public final int DIG_IO_8 = 8;
     public final int DIG_IO_9 = 9;
+    
+    //MXP digitals
+    public final int FRONT_LEFT_ENCODER_A   = 10;
+    public final int FRONT_LEFT_ENCODER_B   = 11;
+    public final int REAR_LEFT_ENCODER_A    = 12;
+    public final int REAR_LEFT_ENCODER_B    = 13;
+    public final int FRONT_RIGHT_ENCODER_A  = 14;
+    public final int FRONT_RIGHT_ENCODER_B  = 15;
+    public final int REAR_RIGHT_ENCODER_A   = 16;
+    public final int REAR_RIGHT_ENCODER_B   = 17;
+    public final int DIG_MXP_IO_18           = 18;
+    public final int DIG_MXP_IO_19           = 19;
+    public final int DIG_MXP_IO_20          = 20;
+    public final int DIG_MXP_IO_21          = 21;
+    public final int DIG_MXP_IO_22          = 22;
+    public final int DIG_MXP_IO_23          = 23;
+    public final int DIG_MXP_IO_24          = 24;
+    public final int DIG_MXP_IO_25          = 25;
+    
     //relays
     public final int RELAY_0 = 0;
     public final int RELAY_1 = 1;

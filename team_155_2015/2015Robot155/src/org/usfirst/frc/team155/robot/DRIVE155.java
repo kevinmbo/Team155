@@ -43,8 +43,8 @@ public class DRIVE155 {
 	        //MOTORS
 	        left_front = new Talon(robotSystem.DRIVE_LEFT_FRONT);
 	        right_front = new Talon(robotSystem.DRIVE_RIGHT_FRONT);
-	        left_back = new Talon(robotSystem.DRIVE_LEFT_BACK);
-	        right_back = new Talon(robotSystem.DRIVE_RIGHT_BACK);
+	        left_back = new Talon(robotSystem.DRIVE_LEFT_REAR);
+	        right_back = new Talon(robotSystem.DRIVE_RIGHT_REAR);
 	        
 
 	        myrobot = new RobotDrive(left_front,left_back,right_front,right_back);

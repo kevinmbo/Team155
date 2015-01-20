@@ -1,7 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-  <classpathentry kind="src" path="src"/>
-  <classpathentry kind="var" path="wpilib" sourcepath="wpilib.sources"/>
-  <classpathentry kind="var" path="networktables" sourcepath="networktables.sources"/>
-  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-  <classpathentry kind="output" path="bin"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="var" path="wpilib" sourcepath="wpilib.sources"/>
+	<classpathentry kind="var" path="networktables" sourcepath="networktables.sources"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="lib" path="/home/kevin/frc_code/Team155/team_155_2015/2015Robot155/matrixlibraries/EJML-experimental-0.27-SNAPSHOT-sources.jar"/>
+	<classpathentry kind="lib" path="/home/kevin/frc_code/Team155/team_155_2015/2015Robot155/matrixlibraries/EJML-experimental-0.27-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="/home/kevin/frc_code/Team155/team_155_2015/2015Robot155/matrixlibraries/EJML-equation-0.27-SNAPSHOT-sources.jar"/>
+	<classpathentry kind="lib" path="/home/kevin/frc_code/Team155/team_155_2015/2015Robot155/matrixlibraries/EJML-equation-0.27-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="/home/kevin/frc_code/Team155/team_155_2015/2015Robot155/matrixlibraries/EJML-denseC64-0.27-SNAPSHOT-sources.jar"/>
+	<classpathentry kind="lib" path="/home/kevin/frc_code/Team155/team_155_2015/2015Robot155/matrixlibraries/EJML-denseC64-0.27-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="/home/kevin/frc_code/Team155/team_155_2015/2015Robot155/matrixlibraries/EJML-dense64-0.27-SNAPSHOT-sources.jar"/>
+	<classpathentry kind="lib" path="/home/kevin/frc_code/Team155/team_155_2015/2015Robot155/matrixlibraries/EJML-dense64-0.27-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="/home/kevin/frc_code/Team155/team_155_2015/2015Robot155/matrixlibraries/EJML-core-0.27-SNAPSHOT-sources.jar"/>
+	<classpathentry kind="lib" path="/home/kevin/frc_code/Team155/team_155_2015/2015Robot155/matrixlibraries/EJML-core-0.27-SNAPSHOT.jar"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
