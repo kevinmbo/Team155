@@ -4,8 +4,14 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 
 import java.util.logging.Logger;
+
+
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.equation.Equation;
+import org.ejml.equation.Sequence;
 
 public class mecanum155 implements Runnable {
 	private static Logger logFile = Logger.getLogger("mecanum_controller.log");
@@ -24,11 +30,6 @@ public class mecanum155 implements Runnable {
 	public Encoder leftRearEncoder;
 	public Encoder rightRearEncoder;
 
-	private double m_velLF; // velocities
-	private double m_velLR;
-	private double m_velRF;
-	private double m_velRR;
-
 	private int m_samplesAverage = 10;
 	private int m_ticks = 250;
 
@@ -41,6 +42,31 @@ public class mecanum155 implements Runnable {
 	double x_J2;
 	double y_J2;
 
+	// PDP
+	private PowerDistributionPanel pdp;
+
+	// for the state space stuff
+
+	private double m_currLF; // currents
+	private double m_currLR;
+	private double m_currRF;
+	private double m_currRR;
+
+	private double m_velLF; // velocities
+	private double m_velLR;
+	private double m_velRF;
+	private double m_velRR;
+	
+	
+	private Equation kalmanEQ;
+    Sequence predictX,predictP;
+    Sequence updateY,updateK,updateX,updateP;
+    DenseMatrix64F F;
+    DenseMatrix64F Q;
+    DenseMatrix64F H;
+    DenseMatrix64F x;
+    DenseMatrix64F P;
+
 	// configuration parameters
 	private boolean m_driveMode;
 	private int m_mode;
@@ -48,10 +74,10 @@ public class mecanum155 implements Runnable {
 	private final int MECANUM_RUN = 1;
 	private final int TANK_DRIVE = 2;
 	private final int SYSTEM_IDENTIFICATION = 3;
-	private final int ARCADE_DRIVE=4;
+	private final int ARCADE_DRIVE = 4;
 	private final int NULL = 5;
 
-	double update_rate_hz = 50;
+	double update_rate_hz = 80;
 
 	// do something similar to this?
 	// why is it does like shown below?
@@ -98,6 +124,7 @@ public class mecanum155 implements Runnable {
 
 	mecanum155(robotMap155 robot) {
 		this.robot = robot;
+		pdp = new PowerDistributionPanel();
 
 		// motors
 		leftFront = new Talon(robot.DRIVE_LEFT_FRONT);
@@ -148,82 +175,137 @@ public class mecanum155 implements Runnable {
 		m_thread = new Thread(this);
 		m_thread.start();
 		loopCount = 0;
+		
+		
+		/*
+		 *
+		 * SETTING UP THE STATE SPACE EQUATION FOR PRE-COMPILING
+		 * 
+		 */
+		//Kalman filter -- not verified for accuracy
+		kalmanEQ = new Equation();
+		
+		int dimenX = F.numCols;
+		
+        x = new DenseMatrix64F(dimenX,1);
+        P = new DenseMatrix64F(dimenX,dimenX);
+		
+        kalmanEQ.alias(x,"x",P,"P",Q,"Q",F,"F",H,"H");
+		
+        kalmanEQ.alias(new DenseMatrix64F(1,1),"z");
+        kalmanEQ.alias(new DenseMatrix64F(1,1),"R");
+		
+        predictX = kalmanEQ.compile("x = F*x");
+        predictP = kalmanEQ.compile("P = F*P*F' + Q");
+
+        updateY = kalmanEQ.compile("y = z - H*x");
+        updateK = kalmanEQ.compile("K = P*H'*inv( H*P*H' + R )");
+        updateX = kalmanEQ.compile("x = x + K*y");
+        updateP = kalmanEQ.compile("P = P-K*(H*P)");
+		
+		
 
 	}
 
 	public void run() {
 
-		
 		while (true) {
-            try {
-            	startTime=Timer.getFPGATimestamp();
-            	loopCount++;
-            	
-            	// get the wheel speed
-        		m_velLF = leftFrontEncoder.getRate();
-        		m_velLR = leftRearEncoder.getRate();
-        		m_velRF = rightFrontEncoder.getRate();
-        		m_velRR = rightRearEncoder.getRate();
+			try {
+				startTime = Timer.getFPGATimestamp();
+				loopCount++;
+
+				// get the wheel speed
+				m_velLF = leftFrontEncoder.getRate();
+				m_velLR = leftRearEncoder.getRate();
+				m_velRF = rightFrontEncoder.getRate();
+				m_velRR = rightRearEncoder.getRate();
+
+				switch (m_mode) {
+				case LOGGING:
+					// log wheel velocities
+					logFile.info(startTime + "wheelSpeed(" + loopCount
+							+ ",1:1:4)=[" + m_velLF + ", " + m_velLR + ", "
+							+ m_velRF + ", " + m_velRR + "];");
+					// log joystick values
+					logFile.info(startTime + "joyStick(" + loopCount
+							+ ",1:1:4)=[" + x_J1 + ", " + y_J1 + ", " + x_J2
+							+ ", " + y_J2 + "];");
+					// log output to motors
+					break;
+				case MECANUM_RUN:
+					// kalman observer for the drive
+					
+
+					// calculate drive wheel speeds
+
+					// controller for the simple drive
+					
+					break;
+				case TANK_DRIVE:
+					leftFront.set(y_J1);
+					rightFront.set(y_J2);
+					leftRear.set(y_J1);
+					rightRear.set(y_J2);
+					// log wheel velocities
+					logFile.info(startTime + "wheelSpeed(" + loopCount
+							+ ",1:1:4)=[" + m_velLF + ", " + m_velLR + ", "
+							+ m_velRF + ", " + m_velRR + "];");
+					// log joystick values
+					logFile.info(startTime + "joyStick(" + loopCount
+							+ ",1:1:4)=[" + x_J1 + ", " + y_J1 + ", " + x_J2
+							+ ", " + y_J2 + "];");
+					// log output to motors
+					logFile.info(startTime + "motorValues(" + loopCount
+							+ ",1:1:4)=[" + leftFront.get() + ", "
+							+ leftRear.get() + ", " + rightFront.get() + ", "
+							+ rightRear.get() + "];");
+					break;
+				case ARCADE_DRIVE:
+					leftFront.set(y_J1 + x_J1);
+					rightFront.set(y_J1 - x_J1);
+					leftRear.set(y_J1 + x_J1);
+					rightRear.set(y_J1 - x_J1);
+					// log wheel velocities
+					logFile.info(startTime + "wheelSpeed(" + loopCount
+							+ ",1:1:4)=[" + m_velLF + ", " + m_velLR + ", "
+							+ m_velRF + ", " + m_velRR + "];");
+					// log joystick values
+					logFile.info(startTime + "joyStick(" + loopCount
+							+ ",1:1:4)=[" + x_J1 + ", " + y_J1 + ", " + x_J2
+							+ ", " + y_J2 + "];");
+					// log output to motors
+					logFile.info(startTime + "motorValues(" + loopCount
+							+ ",1:1:4)=[" + leftFront.get() + ", "
+							+ leftRear.get() + ", " + rightFront.get() + ", "
+							+ rightRear.get() + "];");
+					//log current levels from motors
+					logFile.info(startTime + "motorCurrent(" + loopCount
+							+ ",1:1:4)=[" + pdp.getCurrent(robot.DRIVE_LEFT_FRONT)
+							+ ", " + pdp.getCurrent(robot.DRIVE_LEFT_REAR) + ", "
+							+ pdp.getCurrent(robot.DRIVE_RIGHT_FRONT) + ", "
+							+ pdp.getCurrent(robot.DRIVE_RIGHT_REAR) + "];");
+					break;
+				case SYSTEM_IDENTIFICATION:
+					break;
+				case NULL:
+					break;
+
+				}
 
 
-        		switch (m_mode) {
-        		case LOGGING:
-        			//log wheel velocities
-        			logFile.info(startTime + "wheelSpeed(" + loopCount + ",1:1:4)=[" + m_velLF + ", " + m_velLR + ", " + m_velRF + ", " + m_velRR + "];");
-        			//log joystick values
-        			logFile.info(startTime + "joyStick(" + loopCount + ",1:1:4)=[" + x_J1 + ", " + y_J1 + ", " + x_J2 + ", " + y_J2 +"];");
-        			//log output to motors
-        			break;
-        		case MECANUM_RUN:
-        			break;
-        		case TANK_DRIVE:
-        			leftFront.set(y_J1);
-        			rightFront.set(y_J2);
-        			leftRear.set(y_J1);
-        			rightRear.set(y_J2);
-        			//log wheel velocities
-        			logFile.info(startTime + "wheelSpeed(" + loopCount + ",1:1:4)=[" + m_velLF + ", " + m_velLR + ", " + m_velRF + ", " + m_velRR + "];");
-        			//log joystick values
-        			logFile.info(startTime + "joyStick(" + loopCount + ",1:1:4)=[" + x_J1 + ", " + y_J1 + ", " + x_J2 + ", " + y_J2 +"];");
-        			//log output to motors
-        			logFile.info(startTime + "motorValues(" + loopCount + ",1:1:4)=[" +leftFront.get() + ", " +leftRear.get() + ", " +rightFront.get() + ", " +rightRear.get() +"];");
-        			break;
-        		case ARCADE_DRIVE:
-        				break;
-        		case SYSTEM_IDENTIFICATION:
-        			break;
-        		case NULL:
-        			break;
+				endCalcTime = Timer.getFPGATimestamp();
+				deltaTime = endCalcTime - startTime;
+				logFile.info("compute time: " + deltaTime + "percentage load: "
+						+ deltaTime * update_rate_hz * 100);
+				Timer.delay(1.0 / update_rate_hz - deltaTime);
 
-        		}
-            	
-            	
-            	
-            	
-            	endCalcTime=Timer.getFPGATimestamp();
-            	deltaTime=endCalcTime-startTime;
-            	logFile.info("compute time: " + deltaTime + "percentage load: " + deltaTime*update_rate_hz*100);
-                Timer.delay(1.0/update_rate_hz-deltaTime);
-
-                
-            } catch (RuntimeException ex) {
-                // This exception typically indicates a Timeout
-                ex.printStackTrace();
-            }
-        }
-		
-		
-		
-		
-		
-		
+			} catch (RuntimeException ex) {
+				// This exception typically indicates a Timeout
+				ex.printStackTrace();
+			}
+		}
 
 
-		// kalman observer for the drive
-
-		// calculate drive wheel speeds
-
-		// controller for the simple drive
 	}
 
 	public void setDrive(double x_J1, double y_J1, double x_J2, double y_J2) {
