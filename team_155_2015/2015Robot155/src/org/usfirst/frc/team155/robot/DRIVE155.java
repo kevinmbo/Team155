@@ -102,6 +102,17 @@ public class DRIVE155 {
 	    	SmartDashboard.putNumber("Gyro", roboGyro.getAngle());
 	    }
 	    
+	    public void driveMecanum(double heading,double speed, double direction) {
+	    	double error = heading - roboGyro.getAngle();
+	    	double turnRate = error * Kp;
+	    	double maxturnRate= .75;
+	    	if (turnRate >maxturnRate)
+	    		turnRate=maxturnRate;
+	    	else if (turnRate < -maxturnRate)
+	    		turnRate = -maxturnRate;
+	    	myrobot.mecanumDrive_Polar(speed, direction, turnRate);
+	    	SmartDashboard.putNumber("Gyro", roboGyro.getAngle());
+	    }
 	    public void GyroReset() {
 	    	roboGyro.reset(); 
 	    	

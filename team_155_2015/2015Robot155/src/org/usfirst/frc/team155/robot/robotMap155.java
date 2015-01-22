@@ -49,6 +49,8 @@ public class robotMap155 {
     public final int BACK_RIGHT_ENCODER_B = 7;
     public final int BACK_LEFT_ENCODER_A = 8;
     public final int BACK_LEFT_ENCODER_B = 9;
+    public final int TOTE_SWITCH = 10;
+    
     //relays
     public final int RELAY_0 = 0;
     public final int RELAY_1 = 1;
@@ -65,11 +67,13 @@ public class robotMap155 {
     //declare inputs to be used in multiple objects here
     //	call as robotSystem.dig1.get();
     DigitalInput dig1;
+    DigitalInput toteSwitch;
 
 
     public robotMap155() {
       // dig1 = new DigitalInput(DIG_IO_0);
 
+        toteSwitch = new DigitalInput(TOTE_SWITCH);
 
     }
 
