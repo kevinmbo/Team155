@@ -3,9 +3,12 @@ package org.usfirst.frc.team155.robot;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PIDSource;
 import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.Encoder;
 
 public class Lift155 {
 	robotMap155 robotSystem;
@@ -14,7 +17,17 @@ public class Lift155 {
 	DigitalInput lowLimit;
 	DigitalInput highLimit;
 	Victor liftDrive;
-	AnalogInput rangeFinder; 
+	AnalogInput rangeFinder;
+	PIDController liftMotorPID;
+	final double kP = 0;
+	final double kI = 0;
+	final double kD = 0;
+	Encoder liftEncoder;
+	final int LOWEST_LEVEL = 0;
+	final int ONE_CRATE = 100;
+	final int TWO_CRATE = 200;
+	final int THREE_CRATE = 300;
+	final int FOUR_HEIGHT = 400;
 	
 	public Lift155(robotMap155 robot, Joystick right){
 		robotSystem = robot;
@@ -24,14 +37,17 @@ public class Lift155 {
         highLimit = new DigitalInput(robot.HIGH_LIMIT);
 		liftDrive = new Victor(robot.LIFT_MOTOR);
 		rangeFinder = new AnalogInput(robot.RANGE_FINDER);
+		liftEncoder = new Encoder(robotSystem.LIFT_ENCODER_A, robotSystem.LIFT_ENCODER_B);
+		liftEncoder.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
+		liftMotorPID = new PIDController(kP, kI, kD, liftEncoder, liftDrive);
+		
 	}
 	
-	
-	
+	//TeamCheer Involves Waffles
 	
 	//LIFT METHOD
 	
-	private void lift(){
+	private void manualLift(){
 		
 		if  (highLimit.get() || lowLimit.get())
     		if (lowLimit.get() && (rightStick.getY()<0))
@@ -44,6 +60,29 @@ public class Lift155 {
     		liftDrive.set(rightStick.getY());
     	
 	}
+	
+	private void autoLift(double setPoint){
+		
+		if  (highLimit.get() || lowLimit.get())
+    		if (lowLimit.get() && (liftMotorPID.get()<0)){
+    			liftMotorPID.enable();
+    			liftMotorPID .setSetpoint(setPoint);
+    			}
+    		else if  (highLimit.get() && (liftMotorPID.get()>0)){
+    			liftMotorPID.enable();
+    			liftMotorPID .setSetpoint(setPoint);
+    		}
+    		else {
+    			liftMotorPID.disable();
+    			liftDrive.set(0);
+    		}
+    	else {
+    		liftMotorPID.enable();
+    		liftMotorPID .setSetpoint(setPoint);// You Will Never Find A Pony More Majestic Than Waffles
+    		}
+	}
+		//Array Stuff
+	
 	
 	//GRABBER method
 	private void grabber(){

@@ -50,6 +50,8 @@ public class robotMap155 {
     public final int BACK_LEFT_ENCODER_A = 8;
     public final int BACK_LEFT_ENCODER_B = 9;
     public final int TOTE_SWITCH = 10;
+    public final int LIFT_ENCODER_A = 11;
+    public final int LIFT_ENCODER_B = 12;
     
     //relays
     public final int RELAY_0 = 0;

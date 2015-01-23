@@ -52,7 +52,7 @@ public class Autonomous {
 	public void autoMode(){
 		double speed= 0;
 		double heading= 0;
-		double direction;
+		double direction= 90;
 		
 		switch(state){
 			case DRIVEFORWARD1:
@@ -66,6 +66,7 @@ public class Autonomous {
 			case LIFTTOTE1:
 				speed = 0;
 				heading = 0;
+				direction = 90;
 				//lift the tote
 				BOX_COUNTER++;
 				startTimeDRIVE = Timer.getFPGATimestamp();
@@ -96,6 +97,7 @@ public class Autonomous {
 			case STOP1: 
 				speed= 0;
 				heading= 0;
+				direction= 180;
 				break;
 		}
 		robotDrive.driveMecanum(heading,speed,direction);
