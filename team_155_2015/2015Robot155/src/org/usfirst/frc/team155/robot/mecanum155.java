@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.PowerDistributionPanel;
 
 import java.util.logging.Logger;
 
-
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.equation.Equation;
 import org.ejml.equation.Sequence;
@@ -52,20 +51,28 @@ public class mecanum155 implements Runnable {
 	private double m_currRF;
 	private double m_currRR;
 
+	private double m_Vbatt; // battery voltage
+
 	private double m_velLF; // velocities
 	private double m_velLR;
 	private double m_velRF;
 	private double m_velRR;
 	
-	
+	//for the kalman filter
 	private Equation kalmanEQ;
-    Sequence predictX,predictP;
-    Sequence updateY,updateK,updateX,updateP;
-    DenseMatrix64F F;
-    DenseMatrix64F Q;
-    DenseMatrix64F H;
-    DenseMatrix64F x;
-    DenseMatrix64F P;
+	Sequence predictX, predictP;
+	Sequence updateY, updateK, updateX, updateP;
+	DenseMatrix64F F;
+	DenseMatrix64F Q;
+	DenseMatrix64F H;
+	DenseMatrix64F x;
+	DenseMatrix64F P;
+	DenseMatrix64F u;
+	DenseMatrix64F z;
+	
+	//for the controller
+	
+	DenseMatrix64F output;
 
 	// configuration parameters
 	private boolean m_driveMode;
@@ -138,14 +145,9 @@ public class mecanum155 implements Runnable {
 		rightRear.enableDeadbandElimination(true);
 
 		// encoders
-		leftFrontEncoder = new Encoder(robot.FRONT_LEFT_ENCODER_A, // constuct
-																	// the
-																	// encoder:
-																	// channels,
-																	// don't
-																	// reverse,
-																	// count all
-																	// edges
+		// construct the encoder channels, don't reverse, count all edges,
+		// average over some time period
+		leftFrontEncoder = new Encoder(robot.FRONT_LEFT_ENCODER_A,
 				robot.FRONT_LEFT_ENCODER_B, false, Encoder.EncodingType.k4X);
 		rightFrontEncoder = new Encoder(robot.FRONT_RIGHT_ENCODER_A,
 				robot.FRONT_RIGHT_ENCODER_B, false, Encoder.EncodingType.k4X);
@@ -175,36 +177,63 @@ public class mecanum155 implements Runnable {
 		m_thread = new Thread(this);
 		m_thread.start();
 		loopCount = 0;
-		
-		
+
 		/*
-		 *
-		 * SETTING UP THE STATE SPACE EQUATION FOR PRE-COMPILING
 		 * 
+		 * SETTING UP THE STATE SPACE EQUATION FOR PRE-COMPILING
 		 */
-		//Kalman filter -- not verified for accuracy
+		// Kalman filter -- not verified for accuracy
 		kalmanEQ = new Equation();
-		
+
 		int dimenX = F.numCols;
-		
-        x = new DenseMatrix64F(dimenX,1);
-        P = new DenseMatrix64F(dimenX,dimenX);
-		
-        kalmanEQ.alias(x,"x",P,"P",Q,"Q",F,"F",H,"H");
-		
-        kalmanEQ.alias(new DenseMatrix64F(1,1),"z");
-        kalmanEQ.alias(new DenseMatrix64F(1,1),"R");
-		
-        predictX = kalmanEQ.compile("x = F*x");
-        predictP = kalmanEQ.compile("P = F*P*F' + Q");
 
-        updateY = kalmanEQ.compile("y = z - H*x");
-        updateK = kalmanEQ.compile("K = P*H'*inv( H*P*H' + R )");
-        updateX = kalmanEQ.compile("x = x + K*y");
-        updateP = kalmanEQ.compile("P = P-K*(H*P)");
-		
-		
+		x = new DenseMatrix64F(dimenX, 1); // i should take a base reading and
+											// initialize x
+		P = new DenseMatrix64F(dimenX, dimenX);
 
+		get rid of all equations....all looks nice, but i want performance
+		
+		kalmanEQ.alias(u, "u", x, "x", P, "P", Q, "Q", F, "F", H, "H");
+
+		/*
+		 * x - state matrix 8x1 F - estimated A matrix H - estimated C matrix? P
+		 * - some estimate matrix K - kalman gains
+		 * 
+		 * I - identity matrix
+		 * 
+		 * Q - noise matrix R - noise matrix
+		 * 
+		 * z - the output observation y - error?
+		 */
+
+		I = SimpleMatrix.identity(3);
+
+		kalmanEQ.alias(new DenseMatrix64F(1, 1), "z");
+		kalmanEQ.alias(new DenseMatrix64F(1, 1), "R");
+
+		predictX = kalmanEQ.compile("x = F*x+B*u"); // Predicted (a priori)
+													// state estimate
+		predictP = kalmanEQ.compile("P = F*P*F' + Q"); // Predicted (a priori)
+														// estimate covariance
+
+		updateY = kalmanEQ.compile("y = z - H*x"); // Innovation or measurement
+													// residual
+		updateK = kalmanEQ.compile("K = P*H'*inv( H*P*H' + R )"); // Innovation
+																	// (or
+																	// residual)
+																	// covariance
+																	// with
+																	// Optimal
+																	// Kalman
+																	// gain
+																	// calculation
+		updateX = kalmanEQ.compile("x = x + K*y"); // Updated (a posteriori)
+													// state estimate
+		updateP = kalmanEQ.compile("P = P-K*(H*P)"); // Updated (a posteriori)
+														// estimate covariance
+		// updateP = kalmanEQ.compile("P = (I-K*H)*P*(I-K*H)'+K*R*K'");
+		// //Updated (a posteriori) estimate covariance. This the joseph
+		// form..... for non optimal K
 	}
 
 	public void run() {
@@ -219,6 +248,13 @@ public class mecanum155 implements Runnable {
 				m_velLR = leftRearEncoder.getRate();
 				m_velRF = rightFrontEncoder.getRate();
 				m_velRR = rightRearEncoder.getRate();
+				// get the currents
+				m_currLF = pdp.getCurrent(robot.DRIVE_LEFT_FRONT);
+				m_currLR = pdp.getCurrent(robot.DRIVE_LEFT_REAR);
+				m_currRF = pdp.getCurrent(robot.DRIVE_RIGHT_FRONT);
+				m_currRR = pdp.getCurrent(robot.DRIVE_RIGHT_REAR);
+				// get battery voltage
+				m_Vbatt = pdp.getVoltage();
 
 				switch (m_mode) {
 				case LOGGING:
@@ -230,16 +266,77 @@ public class mecanum155 implements Runnable {
 					logFile.info(startTime + "joyStick(" + loopCount
 							+ ",1:1:4)=[" + x_J1 + ", " + y_J1 + ", " + x_J2
 							+ ", " + y_J2 + "];");
-					// log output to motors
+					// log battery voltage
+					logFile.info(startTime + "vbatt(" + loopCount + ",1)=["
+							+ m_Vbatt + "];");
 					break;
 				case MECANUM_RUN:
-					// kalman observer for the drive
-					
+					/*
+					 * kalman observer for the drive
+					 */
 
-					// calculate drive wheel speeds
+					// prepping up the input (u) and output measurement(z) for
+					// the kalman filter
+					double[][] z_prep = new double[][] { { m_velLF },
+							{ m_currLF }, { m_velLR }, { m_currLR },
+							{ m_velRF }, { m_currRF }, { m_velRR },
+							{ m_currRR } };
+					double[][] u_prep = new double[][] { { leftFront.get() },
+							{ leftRear.get() }, { rightFront.get() },
+							{ rightRear.get() } };
 
-					// controller for the simple drive
-					
+					u = DenseMatrix64F(u_prep); // this is [-1,1], not
+												// [-Vbatt,Vbatt];
+					z = DenseMatrix64F(z_prep);
+
+					// predict
+					predictX.perform();
+					predictP.perform();
+
+					// update
+					eq.alias(z, "z");
+					eq.alias(R, "R"); // do i need this? here? once up top?
+
+					updateY.perform();
+					updateK.perform();
+					updateX.perform();
+					updateP.perform();
+
+					// all done
+
+					/*
+					 * calculate drive wheel speeds based on user input
+					 */
+
+					/*
+					 * run the controller based on user input must take into
+					 * account for the limits of [-1,1] output scaling to motors
+					 * and Vbatt
+					 */
+
+					divide(m_Vbatt, output); // normalize to present battery
+												// voltage
+
+					maximum = elementmax(output); // find the largest value
+					minimum = elementmin(output);
+
+					if (minimum > 1) {
+						divide(maximum, output);
+						logFile.info("WARNING: AT "
+								+ startTime
+								+ " THERE IS IN SUFFICIENT BATTERY VOLTAGE TO PRODUCE THE NEEDED RPM ON ALL MOTORS");
+					} else if (maximum > 1) {
+						divide(maximum, output);
+						logFile.info("WARNING: AT "
+								+ startTime
+								+ " MAXIMUM WAS OVER 1 FOR SOME MOTORS");
+					}
+
+					leftFront.set(output.data[0]);		//am i doing this right?  are the index all correct?
+					rightFront.set(output.data[1]);
+					leftRear.set(output.data[2]);
+					rightRear.set(output.data[3]);
+
 					break;
 				case TANK_DRIVE:
 					leftFront.set(y_J1);
@@ -278,12 +375,10 @@ public class mecanum155 implements Runnable {
 							+ ",1:1:4)=[" + leftFront.get() + ", "
 							+ leftRear.get() + ", " + rightFront.get() + ", "
 							+ rightRear.get() + "];");
-					//log current levels from motors
+					// log current levels from motors
 					logFile.info(startTime + "motorCurrent(" + loopCount
-							+ ",1:1:4)=[" + pdp.getCurrent(robot.DRIVE_LEFT_FRONT)
-							+ ", " + pdp.getCurrent(robot.DRIVE_LEFT_REAR) + ", "
-							+ pdp.getCurrent(robot.DRIVE_RIGHT_FRONT) + ", "
-							+ pdp.getCurrent(robot.DRIVE_RIGHT_REAR) + "];");
+							+ ",1:1:4)=[" + m_currLF + ", " + m_currLR + ", "
+							+ m_currRF + ", " + m_currRR + "];");
 					break;
 				case SYSTEM_IDENTIFICATION:
 					break;
@@ -291,7 +386,6 @@ public class mecanum155 implements Runnable {
 					break;
 
 				}
-
 
 				endCalcTime = Timer.getFPGATimestamp();
 				deltaTime = endCalcTime - startTime;
@@ -305,7 +399,6 @@ public class mecanum155 implements Runnable {
 			}
 		}
 
-
 	}
 
 	public void setDrive(double x_J1, double y_J1, double x_J2, double y_J2) {
@@ -316,6 +409,16 @@ public class mecanum155 implements Runnable {
 		this.x_J2 = x_J2;
 		this.y_J2 = y_J2;
 
+	}
+
+	private int max(int a[]) {
+		max = 0;
+		for (i = 0; i < a.length; i++) {
+			if (a[i] >= a[max])
+				max = i;
+
+		}
+		return (a[max]);
 	}
 
 	/*
