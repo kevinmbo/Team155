@@ -29,6 +29,11 @@ public class Lift155 {
 	final int THREE_CRATE = 300;
 	final int FOUR_HEIGHT = 400;
 	
+	public final int GROUND_LEVEL = 0;
+	public final int CARRY_BOX = 1;
+	public final int STACK_BOX = 2;
+		
+	
 	public Lift155(robotMap155 robot, Joystick right){
 		robotSystem = robot;
 		rightStick = right;
@@ -61,7 +66,7 @@ public class Lift155 {
     	
 	}
 	
-	private void autoLift(double setPoint){
+	public void autoLift(double setPoint){
 		
 		if  (highLimit.get() || lowLimit.get())
     		if (lowLimit.get() && (liftMotorPID.get()<0)){
@@ -81,7 +86,9 @@ public class Lift155 {
     		liftMotorPID .setSetpoint(setPoint);// You Will Never Find A Pony More Majestic Than Waffles
     		}
 	}
-		//Array Stuff
+		public boolean onTarget(){
+			return (liftMotorPID.onTarget());
+		}
 	
 	
 	//GRABBER method
@@ -102,7 +109,7 @@ public class Lift155 {
 	}
 	public void run(){
 		//call lift....
-		lift();
+		manualLift();
 		
 		//call grabber....
 		grabber();
