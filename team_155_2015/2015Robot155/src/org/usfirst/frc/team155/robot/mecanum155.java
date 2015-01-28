@@ -9,8 +9,11 @@ import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import java.util.logging.Logger;
 
 import org.ejml.data.DenseMatrix64F;
-import org.ejml.equation.Equation;
-import org.ejml.equation.Sequence;
+import org.ejml.UtilEjml;
+import org.ejml.ops.CommonOps;
+import org.ejml.ops.MatrixIO;
+
+import static org.ejml.ops.CommonOps.*;
 
 public class mecanum155 implements Runnable {
 	private static Logger logFile = Logger.getLogger("mecanum_controller.log");
@@ -57,22 +60,49 @@ public class mecanum155 implements Runnable {
 	private double m_velLR;
 	private double m_velRF;
 	private double m_velRR;
-	
-	//for the kalman filter
-	private Equation kalmanEQ;
-	Sequence predictX, predictP;
-	Sequence updateY, updateK, updateX, updateP;
+
+	/*
+	 * KALMAN FILTER MATRICES
+	 */
+	// base matrices
 	DenseMatrix64F F;
 	DenseMatrix64F Q;
+	DenseMatrix64F R;
+
+	DenseMatrix64F B;
 	DenseMatrix64F H;
-	DenseMatrix64F x;
+
 	DenseMatrix64F P;
 	DenseMatrix64F u;
 	DenseMatrix64F z;
-	
-	//for the controller
-	
+	DenseMatrix64F K;
+	DenseMatrix64F y;
+	DenseMatrix64F xEstimate;
+
+	DenseMatrix64F I;
+	// internalized temporary matrices
+	DenseMatrix64F addTerm1;
+	DenseMatrix64F addTerm2;
+	DenseMatrix64F addTerm3;
+	DenseMatrix64F addTerm4;
+	DenseMatrix64F addTerm5;
+	DenseMatrix64F prodTerm1;
+	DenseMatrix64F prodTerm2;
+	DenseMatrix64F prodTerm3;
+	DenseMatrix64F partialProd;
+	DenseMatrix64F Ftran;
+	DenseMatrix64F Htran;
+	DenseMatrix64F subTerm1;
+	DenseMatrix64F subTerm2;
+
+	DenseMatrix64F invertPre;
+	DenseMatrix64F invertPost;
+
+	// for the controller
 	DenseMatrix64F output;
+
+	double maximum;
+	double minimum;
 
 	// configuration parameters
 	private boolean m_driveMode;
@@ -183,57 +213,56 @@ public class mecanum155 implements Runnable {
 		 * SETTING UP THE STATE SPACE EQUATION FOR PRE-COMPILING
 		 */
 		// Kalman filter -- not verified for accuracy
-		kalmanEQ = new Equation();
 
-		int dimenX = F.numCols;
-
-		x = new DenseMatrix64F(dimenX, 1); // i should take a base reading and
-											// initialize x
-		P = new DenseMatrix64F(dimenX, dimenX);
-
-		get rid of all equations....all looks nice, but i want performance
-		
-		kalmanEQ.alias(u, "u", x, "x", P, "P", Q, "Q", F, "F", H, "H");
+		// i really should make this parameterizable.....
 
 		/*
-		 * x - state matrix 8x1 F - estimated A matrix H - estimated C matrix? P
-		 * - some estimate matrix K - kalman gains
-		 * 
-		 * I - identity matrix
-		 * 
-		 * Q - noise matrix R - noise matrix
-		 * 
-		 * z - the output observation y - error?
+		 * KALMAN FILTER MATRICES
 		 */
+		// base matrices
+		final int states = 8;
+		final int inputs = 4;
+		final int outputs = 8;
 
-		I = SimpleMatrix.identity(3);
+		F = new DenseMatrix64F(states,states);		//'A" matrix
+		Q = new DenseMatrix64F(states,states);		//noise covariance of process noise
+		R = new DenseMatrix64F(outputs,outputs);	//noise ocvariance of measeurement noise
 
-		kalmanEQ.alias(new DenseMatrix64F(1, 1), "z");
-		kalmanEQ.alias(new DenseMatrix64F(1, 1), "R");
+		B = new DenseMatrix64F(states,inputs);		//'B' matrix
+		H = new DenseMatrix64F(outputs,states);		//'C' matrix
 
-		predictX = kalmanEQ.compile("x = F*x+B*u"); // Predicted (a priori)
-													// state estimate
-		predictP = kalmanEQ.compile("P = F*P*F' + Q"); // Predicted (a priori)
-														// estimate covariance
+		P = new DenseMatrix64F(states,states);		//posteriori error covariance matrix
+		u = new DenseMatrix64F(inputs,1);			//input matrix
+		z = new DenseMatrix64F(outputs,1);			//observation or measurement matrix
+		K = new DenseMatrix64F(states,outputs);		//kalman gains matrix
+		y = new DenseMatrix64F(outputs,1);			//error matrix
+		xEstimate = new DenseMatrix64F(states, 1);	//the estimated state matrix
 
-		updateY = kalmanEQ.compile("y = z - H*x"); // Innovation or measurement
-													// residual
-		updateK = kalmanEQ.compile("K = P*H'*inv( H*P*H' + R )"); // Innovation
-																	// (or
-																	// residual)
-																	// covariance
-																	// with
-																	// Optimal
-																	// Kalman
-																	// gain
-																	// calculation
-		updateX = kalmanEQ.compile("x = x + K*y"); // Updated (a posteriori)
-													// state estimate
-		updateP = kalmanEQ.compile("P = P-K*(H*P)"); // Updated (a posteriori)
-														// estimate covariance
-		// updateP = kalmanEQ.compile("P = (I-K*H)*P*(I-K*H)'+K*R*K'");
-		// //Updated (a posteriori) estimate covariance. This the joseph
-		// form..... for non optimal K
+		I = new DenseMatrix64F(states,states);
+		
+		//initialize the above matrices
+		I=identity(states);
+		
+		// internalized temporary matrices
+		addTerm1 = new DenseMatrix64F(states,1);
+		addTerm2 = new DenseMatrix64F(states,1);
+		addTerm3 = new DenseMatrix64F(states,states);
+		addTerm4 = new DenseMatrix64F(outputs,outputs);
+		addTerm5 = new DenseMatrix64F(states,1);
+		prodTerm1 = new DenseMatrix64F(outputs,states);
+		prodTerm2 = new DenseMatrix64F(outputs,states);
+		prodTerm3 = new DenseMatrix64F(states,outputs);
+		partialProd = new DenseMatrix64F(states,states);
+		Ftran = new DenseMatrix64F(states,states);
+		Htran = new DenseMatrix64F(states,outputs);
+		subTerm1 = new DenseMatrix64F(outputs,1);
+		subTerm2 = new DenseMatrix64F(states,states);
+
+		invertPre = new DenseMatrix64F(outputs,outputs);
+		invertPost = new DenseMatrix64F(outputs,outputs);
+
+
+
 	}
 
 	public void run() {
@@ -277,32 +306,21 @@ public class mecanum155 implements Runnable {
 
 					// prepping up the input (u) and output measurement(z) for
 					// the kalman filter
-					double[][] z_prep = new double[][] { { m_velLF },
-							{ m_currLF }, { m_velLR }, { m_currLR },
-							{ m_velRF }, { m_currRF }, { m_velRR },
-							{ m_currRR } };
-					double[][] u_prep = new double[][] { { leftFront.get() },
-							{ leftRear.get() }, { rightFront.get() },
-							{ rightRear.get() } };
+					double[] z_prep = new double[] { m_velLF, m_currLF,
+							m_velLR, m_currLR, m_velRF, m_currRF, m_velRR,
+							m_currRR };
+					double[] u_prep = new double[] { leftFront.get(),
+							leftRear.get(), rightFront.get(), rightRear.get() };
 
-					u = DenseMatrix64F(u_prep); // this is [-1,1], not
-												// [-Vbatt,Vbatt];
-					z = DenseMatrix64F(z_prep);
+					u.setData(u_prep); // is this right?
+					z.setData(z_prep); // is this right
 
-					// predict
-					predictX.perform();
-					predictP.perform();
+					scale(m_Vbatt, u);
 
-					// update
-					eq.alias(z, "z");
-					eq.alias(R, "R"); // do i need this? here? once up top?
-
-					updateY.perform();
-					updateK.perform();
-					updateX.perform();
-					updateP.perform();
-
-					// all done
+					/*
+					 * RUN THE KALMAN FILTER
+					 */
+					xEstimate = kalmanFilter(u, z);
 
 					/*
 					 * calculate drive wheel speeds based on user input
@@ -317,8 +335,8 @@ public class mecanum155 implements Runnable {
 					divide(m_Vbatt, output); // normalize to present battery
 												// voltage
 
-					maximum = elementmax(output); // find the largest value
-					minimum = elementmin(output);
+					maximum = elementMaxAbs(output); // find the largest value
+					minimum = elementMinAbs(output);
 
 					if (minimum > 1) {
 						divide(maximum, output);
@@ -327,14 +345,14 @@ public class mecanum155 implements Runnable {
 								+ " THERE IS IN SUFFICIENT BATTERY VOLTAGE TO PRODUCE THE NEEDED RPM ON ALL MOTORS");
 					} else if (maximum > 1) {
 						divide(maximum, output);
-						logFile.info("WARNING: AT "
-								+ startTime
+						logFile.info("WARNING: AT " + startTime
 								+ " MAXIMUM WAS OVER 1 FOR SOME MOTORS");
 					}
 
-					leftFront.set(output.data[0]);		//am i doing this right?  are the index all correct?
-					rightFront.set(output.data[1]);
-					leftRear.set(output.data[2]);
+					leftFront.set(output.data[0]); // am i doing this right? are
+													// the index all correct?
+					leftRear.set(output.data[1]);
+					rightFront.set(output.data[2]);
 					rightRear.set(output.data[3]);
 
 					break;
@@ -381,6 +399,27 @@ public class mecanum155 implements Runnable {
 							+ m_currRF + ", " + m_currRR + "];");
 					break;
 				case SYSTEM_IDENTIFICATION:
+					//run WPI's mecanum code
+					
+					
+					
+					// log wheel velocities
+					logFile.info(startTime + "wheelSpeed(" + loopCount
+							+ ",1:1:4)=[" + m_velLF + ", " + m_velLR + ", "
+							+ m_velRF + ", " + m_velRR + "];");
+					// log joystick values
+					logFile.info(startTime + "joyStick(" + loopCount
+							+ ",1:1:4)=[" + x_J1 + ", " + y_J1 + ", " + x_J2
+							+ ", " + y_J2 + "];");
+					// log output to motors
+					logFile.info(startTime + "motorValues(" + loopCount
+							+ ",1:1:4)=[" + leftFront.get() + ", "
+							+ leftRear.get() + ", " + rightFront.get() + ", "
+							+ rightRear.get() + "];");
+					// log current levels from motors
+					logFile.info(startTime + "motorCurrent(" + loopCount
+							+ ",1:1:4)=[" + m_currLF + ", " + m_currLR + ", "
+							+ m_currRF + ", " + m_currRR + "];");
 					break;
 				case NULL:
 					break;
@@ -401,6 +440,7 @@ public class mecanum155 implements Runnable {
 
 	}
 
+	// what was the purpose of this?
 	public void setDrive(double x_J1, double y_J1, double x_J2, double y_J2) {
 
 		// just set values
@@ -411,14 +451,82 @@ public class mecanum155 implements Runnable {
 
 	}
 
-	private int max(int a[]) {
-		max = 0;
-		for (i = 0; i < a.length; i++) {
-			if (a[i] >= a[max])
-				max = i;
+	private DenseMatrix64F kalmanFilter(DenseMatrix64F u, DenseMatrix64F z) {
+		/*
+		 * x - state matrix 8x1 F - estimated A matrix H - estimated C matrix? P
+		 * - some estimate matrix K - kalman gains
+		 * 
+		 * I - identity matrix
+		 * 
+		 * Q - noise matrix R - noise matrix
+		 * 
+		 * 
+		 * z - the output observation y - error?
+		 */
+		boolean successTest;
 
-		}
-		return (a[max]);
+		/*
+		 * Predicted (a priori) state estimatex = F*x+B*u"
+		 */
+		mult(F, xEstimate, addTerm1);
+		mult(B, u, addTerm2);
+		add(addTerm1, addTerm2, xEstimate);
+
+		/*
+		 * Predicted (a prior) estimate covariance * P=F*P*F'+Q
+		 */
+		mult(F, P, partialProd);
+		transpose(F, Ftran);
+		mult(partialProd, Ftran, addTerm3);
+		add(addTerm3, Q, P);
+
+		/*
+		 * innovation or measurement residual y=z-H*x
+		 */
+
+		mult(H, xEstimate, subTerm1);
+		subtract(z, subTerm1, y);
+
+		/*
+		 * innovation (or residual) covariance with optimal Kalman gain
+		 * calcuation K=P*H'*inv(H*P*H'+R)
+		 */
+
+		transpose(H, Htran);
+
+		mult(H, P, prodTerm1);
+		mult(prodTerm1, Htran, addTerm4);
+		add(addTerm4, R, invertPre);
+
+		successTest = invert(invertPre, invertPost);
+
+		if (!successTest) // need to handle this better as it'll mess up the
+							// kalman observer probably
+			logFile.fine("SINGULAR MATRIX");
+
+		mult(P, Htran, prodTerm3);
+		mult(prodTerm3, invertPost, K);
+
+		/*
+		 * updated (a posteriori) state estimate x=x+K*y
+		 */
+
+		mult(K, y, addTerm5);
+		add(xEstimate, addTerm5, xEstimate);
+
+		/*
+		 * updated (a posteriori estimate covariance P=P-K*(H*P)
+		 */
+		mult(H, P, prodTerm2);
+		mult(K, prodTerm2, subTerm2);
+		subtract(P, subTerm2, P);
+
+		// updateP = kalmanEQ.compile("P = (I-K*H)*P*(I-K*H)'+K*R*K'");
+		// //Updated (a posteriori) estimate covariance. This the joseph
+		// form..... for non optimal K
+
+		return xEstimate; // return the estimate state vector
+
 	}
 
 	/*
