@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Gyro;
-import edu.wpi.first.wpilibj.buttons.Button;
+//import edu.wpi.first.wpilibj.Buttons.Button;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class DRIVE155 {
@@ -59,9 +59,9 @@ public class DRIVE155 {
 	        myrobot = new RobotDrive(left_front,left_back,right_front,right_back);
 	        
 	        myrobot.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
-	        myrobot.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+	        myrobot.setInvertedMotor(RobotDrive.MotorType.kFrontRight, false);
 	        myrobot.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
-	        myrobot.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);
+	        myrobot.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
 	        //ENCODERS
 	        Front_Right_Encoder = new Encoder(robotSystem.FRONT_RIGHT_ENCODER_A, robotSystem.FRONT_RIGHT_ENCODER_B);
 	        Front_Right_Encoder.setDistancePerPulse(.1);
@@ -79,13 +79,13 @@ public class DRIVE155 {
 	    }
 	    
 	    //drive modes
-	    private void arcade(){
+	   // private void arcade(){
 	    	
-	    	myrobot.arcadeDrive(leftStick);
+	    	//myrobot.arcadeDrive(leftStick);
 	    	
 	    		
 	    	
-	    }
+	    //}
 
 	    private void mecanum_fieldOriented(){
 	    	myrobot.mecanumDrive_Cartesian(leftStick.getX(), leftStick.getY(), rightStick.getX(), roboGyro.getAngle());
@@ -102,7 +102,7 @@ public class DRIVE155 {
 	    	SmartDashboard.putNumber("Gyro", roboGyro.getAngle());
 	    }
 	    
-	    public void driveMecanum(double heading,double speed, double direction) {
+	    public void driveMecanum(double heading, double speed, double direction) {
 	    	double error = heading - roboGyro.getAngle();
 	    	double turnRate = error * Kp;
 	    	double maxturnRate= .75;
@@ -120,7 +120,7 @@ public class DRIVE155 {
 	    //drive selector
 
 	    public void run(){
-	    	arcade();
+	    	/*arcade();
 	    	if (leftStick.getRawButton(1) == true)
 	    		roboGyro.reset();
 	    	//System.out.println("gyro = " + roboGyro.getAngle());
@@ -129,7 +129,12 @@ public class DRIVE155 {
 	    	SmartDashboard.putNumber("Gyro", roboGyro.getAngle());
 	    	SmartDashboard.putNumber("Encoder Distance",Front_Right_Encoder.get());
 	    	SmartDashboard.putNumber("Encoder Rate",Front_Right_Encoder.getRate());
-		}
+		*/
+	    	 mecanum_fieldOriented();
+	    	if (leftStick.getRawButton(1) == true)
+	    		roboGyro.reset();	
+	    
+	    }
 	    
 
 }    
