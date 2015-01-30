@@ -23,7 +23,7 @@ public class Robot extends IterativeRobot {
 	Joystick rightStick;
 	Joystick leftStick;
 	Autonomous Auto155;
-	
+	Vision155 robotVision;
 	
 	
     public void robotInit() {
@@ -33,6 +33,7 @@ public class Robot extends IterativeRobot {
     	robotLift = new Lift155(robot, rightStick);
     	robotDrive = new DRIVE155(leftStick, rightStick, robot);
     	Auto155 = new Autonomous(robotDrive, robotLift, robot);
+    	robotVision = new Vision155();
     }
     
     
@@ -59,6 +60,7 @@ public class Robot extends IterativeRobot {
     		robotDrive.run();
     		//call lift run() method
     		robotLift.run();
+    		robotVision.run();
     		
     }
     
