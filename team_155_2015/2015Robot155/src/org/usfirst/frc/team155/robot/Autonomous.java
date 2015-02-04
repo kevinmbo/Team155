@@ -2,12 +2,15 @@ package org.usfirst.frc.team155.robot;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Autonomous {
 
 	DRIVE155 robotDrive;
 	Lift155 robotLift;
 	robotMap155 robotMap;
+	//CameraThread robotVision;
+	Vision155 robotVision;
 
 	// arcade state
 	final int DRIVE0 = 0;
@@ -33,10 +36,12 @@ public class Autonomous {
 	boolean readyToCarry = false;
 	DigitalInput toteSwitch;
 
-	public Autonomous(DRIVE155 drive, Lift155 lift, robotMap155 robot) {
+	public Autonomous(DRIVE155 drive, Lift155 lift, robotMap155 robot, Vision155 vision) {
+		//public Autonomous(DRIVE155 drive, Lift155 lift, robotMap155 robot, CameraThread vision) {
 		robotDrive = drive;
 		robotLift = lift;
 		robotMap = robot;
+		robotVision = vision;
 	}
 
 	public void run() {
@@ -48,6 +53,14 @@ public class Autonomous {
 			speed = 0;
 		// robotLift.measureDistance();
 		robotDrive.driveStraight(heading, speed);
+	}
+	
+	public void centerTote(){
+	if (robotVision.hasFoundTote())	
+		robotDrive.centerYellowTote(300, 0, robotVision.getTotePosition());
+		
+	else robotDrive.mecanumstop();	
+	SmartDashboard.putBoolean("foundtote", robotVision.hasFoundTote());
 	}
 
 	public void autoMode() {

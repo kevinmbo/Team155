@@ -6,12 +6,14 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Gyro;
+import edu.wpi.first.wpilibj.Timer;
 //import edu.wpi.first.wpilibj.Buttons.Button;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class DRIVE155 {
 		robotMap155 robotSystem;
 		SmartDashboard sDash;
+		//Vision155 vision;
 		
 		//JOYSTICKS
 	    Joystick leftStick = new Joystick(1);
@@ -23,6 +25,7 @@ public class DRIVE155 {
 	    public Talon left_back;
 	    public Talon right_back;
 	    public RobotDrive myrobot;
+	    
 	    
 	    //DRIVE ENCODERS
 	    public Encoder Front_Right_Encoder;
@@ -40,10 +43,12 @@ public class DRIVE155 {
         double Kd = 0;
         double PIDGyroOut;
 	    public PIDController PIDGyro;
+	    double camKp=.01;
 	    
 	    public DRIVE155(Joystick left, Joystick right, robotMap155 robot) {
 	        robotSystem = robot;
 	        sDash = new SmartDashboard();
+	        //vision = new Vision155();
 	        
 	        //JOYSTICKS - NEEDS MORE APPROPRIATE NAMES
 	        leftStick = left;
@@ -113,12 +118,29 @@ public class DRIVE155 {
 	    	myrobot.mecanumDrive_Polar(speed, direction, turnRate);
 	    	SmartDashboard.putNumber("Gyro", roboGyro.getAngle());
 	    }
+	    
+	    public void centerYellowTote(double goalposition, double speed, double toteposition){
+	    	double error = goalposition - toteposition;
+	    	double slideRate = error * camKp;
+	    	double maxslideRate= .75;
+	    	if (slideRate >maxslideRate)
+	    		slideRate=maxslideRate;
+	    	else if (slideRate < -maxslideRate)
+	    		slideRate = -maxslideRate;
+	    	Timer.delay(0.005);
+	    	myrobot.mecanumDrive_Cartesian(slideRate, speed, 0, roboGyro.getAngle());
+	    	SmartDashboard.putNumber("toteposition=", toteposition);
+	    	SmartDashboard.putNumber("error=",error);
+	    }
+	  
 	    public void GyroReset() {
 	    	roboGyro.reset(); 
 	    	
 	    }
 	    //drive selector
-
+	    public void mecanumstop(){
+	    	myrobot.mecanumDrive_Polar(0,0,0);
+	    }
 	    public void run(){
 	    	/*arcade();
 	    	if (leftStick.getRawButton(1) == true)
@@ -133,7 +155,32 @@ public class DRIVE155 {
 	    	 mecanum_fieldOriented();
 	    	if (leftStick.getRawButton(1) == true)
 	    		roboGyro.reset();	
+	    	if (leftStick.getRawButton(2) == true)
+	    		EncoderReset();	
 	    
+	    }
+	    
+	    public double EncoderDistance(){
+	    	double distance_Back_Left;
+	    	double distance_Front_Left;
+	    	double averageDistance;
+	    	distance_Front_Left = Front_Left_Encoder.getDistance();
+	    	distance_Back_Left = Back_Left_Encoder.getDistance();
+	    	averageDistance = (distance_Front_Left + distance_Back_Left) / 2;
+	    	SmartDashboard.putNumber("Average of left side encoder : ", averageDistance);
+	    	SmartDashboard.putNumber("Back left Encoder Distance : ", Back_Left_Encoder.getDistance());
+	    	SmartDashboard.putNumber("Front left Encoder Distance : ", Front_Left_Encoder.getDistance());
+	    	return averageDistance;
+	    }
+	    public void EncoderRate(){
+	    	double rate;
+	    	rate = Front_Left_Encoder.getRate();
+	    	SmartDashboard.putNumber("Back left Encoder Rate : ", Back_Left_Encoder.getRate());
+	    	SmartDashboard.putNumber("Front left Encoder Rate: ", Front_Left_Encoder.getRate());
+	    }
+	    public void EncoderReset(){
+	    	Front_Left_Encoder.reset();
+	    	Back_Left_Encoder.reset();
 	    }
 	    
 
