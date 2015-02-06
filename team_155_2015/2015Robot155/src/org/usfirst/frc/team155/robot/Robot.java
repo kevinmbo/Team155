@@ -23,8 +23,8 @@ public class Robot extends IterativeRobot {
 	Joystick rightStick;
 	Joystick leftStick;
 	Autonomous Auto155;
-	Vision155 robotVision;
-	//CameraThread cameraThread;
+	//Vision155 robotVision;
+	CameraThread cameraThread;
 	
 	
     public void robotInit() {
@@ -33,11 +33,14 @@ public class Robot extends IterativeRobot {
     	robot = new robotMap155();
     	robotLift = new Lift155(robot, rightStick);
     	robotDrive = new DRIVE155(leftStick, rightStick, robot);
-    	//cameraThread = new CameraThread();
-    	//new Thread(cameraThread).start();
-    	robotVision = new Vision155();
+    	cameraThread = new CameraThread();
+    	//cameraThread.setPriority(Thread.MIN_PRIORITY);
+    	cameraThread.start();
+
+    	//robotVision = new Vision155();
     	
-    	Auto155 = new Autonomous(robotDrive, robotLift, robot, robotVision);
+    	//Auto155 = new Autonomous(robotDrive, robotLift, robot, robotVision);
+    	Auto155 = new Autonomous(robotDrive, robotLift, robot, cameraThread);
     	
     }
     
@@ -52,7 +55,7 @@ public class Robot extends IterativeRobot {
      */
     public void autonomousPeriodic() {
     	Auto155.centerTote();
-    	robotVision.run();
+    	//robotVision.run();
     }
 
     public void teleopInit() {

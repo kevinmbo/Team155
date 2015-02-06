@@ -3,6 +3,8 @@ package org.usfirst.frc.team155.robot;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PIDSource;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Gyro;
@@ -32,6 +34,11 @@ public class DRIVE155 {
 	    public Encoder Front_Left_Encoder;
 	    public Encoder Back_Right_Encoder;
 	    public Encoder Back_Left_Encoder;
+	    public PIDController Front_Right_PID;
+	    public PIDController Front_Left_PID;
+	    public PIDController Rear_Right_PID;
+	    public PIDController Rear_Left_PID;
+	    
 	    
 	    //YAW RATE SENSOR
 	    public Gyro roboGyro;
@@ -44,6 +51,20 @@ public class DRIVE155 {
         double PIDGyroOut;
 	    public PIDController PIDGyro;
 	    double camKp=.01;
+	    
+	    //Encoder Controllers
+	    double Front_Right_Kp = .05;
+        double Front_Right_Ki = 0;
+        double Front_Right_Kd = 0;
+        double Front_Left_Kp = .05;
+        double Front_Left_Ki = 0;
+        double Front_Left_Kd = 0;
+        double Rear_Right_Kp = .05;
+        double Rear_Right_Ki = 0;
+        double Rear_Right_Kd = 0;
+        double Rear_Left_Kp = .05;
+        double Rear_Left_Ki = 0;
+        double Rear_Left_Kd = 0;
 	    
 	    public DRIVE155(Joystick left, Joystick right, robotMap155 robot) {
 	        robotSystem = robot;
@@ -69,15 +90,30 @@ public class DRIVE155 {
 	        myrobot.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
 	        //ENCODERS
 	        Front_Right_Encoder = new Encoder(robotSystem.FRONT_RIGHT_ENCODER_A, robotSystem.FRONT_RIGHT_ENCODER_B);
-	        Front_Right_Encoder.setDistancePerPulse(.1);
+	        Front_Right_Encoder.setDistancePerPulse(6*3.14159265389/500);
 	        Front_Left_Encoder = new Encoder(robotSystem.FRONT_LEFT_ENCODER_A, robotSystem.FRONT_LEFT_ENCODER_B);
-	        Front_Left_Encoder.setDistancePerPulse(.1); 
+	        Front_Left_Encoder.setDistancePerPulse(6*3.14159265389/500); 
+	        Back_Right_Encoder = new Encoder(robotSystem.BACK_RIGHT_ENCODER_A, robotSystem.BACK_RIGHT_ENCODER_B);
+	        Back_Right_Encoder.setDistancePerPulse(6*3.14159265389/500);
 	        Back_Left_Encoder = new Encoder(robotSystem.BACK_LEFT_ENCODER_A, robotSystem.BACK_LEFT_ENCODER_B);
-	        Back_Left_Encoder.setDistancePerPulse(.1);
+	        Back_Left_Encoder.setDistancePerPulse(6*3.14159265389/500);
+	       
 	        //YAW RATE (GYRO)
 	        roboGyro = new Gyro(robotSystem.GYRO);
 	        
 	        //CONTROLLER
+	        Front_Right_Encoder.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
+	        Front_Right_PID = new PIDController(Front_Right_Kp, Front_Right_Ki, Front_Right_Kd, Front_Right_Encoder, right_front);
+	        Front_Left_Encoder.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
+	        Front_Left_PID = new PIDController(Front_Left_Kp, Front_Left_Ki, Front_Left_Kd, Front_Left_Encoder, left_front);
+	        Back_Right_Encoder.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
+	        Rear_Right_PID = new PIDController(Rear_Right_Kp, Rear_Right_Ki, Rear_Right_Kd, Back_Right_Encoder, right_back);
+	        Back_Left_Encoder.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
+	        Rear_Left_PID = new PIDController(Rear_Left_Kp, Rear_Left_Ki, Rear_Left_Kd, Back_Left_Encoder, left_back);
+	        Front_Left_PID.setAbsoluteTolerance(.25);
+	        Front_Right_PID.setAbsoluteTolerance(.25);
+	        Rear_Left_PID.setAbsoluteTolerance(.25);
+	        Rear_Right_PID.setAbsoluteTolerance(.25);
 	        
 	        //PIDGyro = new PIDController(Kp,Ki,Kd,roboGyro,PIDGyroOut);
 	        
@@ -109,6 +145,7 @@ public class DRIVE155 {
 	    
 	    public void driveMecanum(double heading, double speed, double direction) {
 	    	double error = heading - roboGyro.getAngle();
+	    	PowerDistributionPanel pdp = new PowerDistributionPanel();
 	    	double turnRate = error * Kp;
 	    	double maxturnRate= .75;
 	    	if (turnRate >maxturnRate)
@@ -117,6 +154,7 @@ public class DRIVE155 {
 	    		turnRate = -maxturnRate;
 	    	myrobot.mecanumDrive_Polar(speed, direction, turnRate);
 	    	SmartDashboard.putNumber("Gyro", roboGyro.getAngle());
+	    	SmartDashboard.putNumber("Motor1 current", pdp.getCurrent(12));
 	    }
 	    
 	    public void centerYellowTote(double goalposition, double speed, double toteposition){
@@ -152,12 +190,23 @@ public class DRIVE155 {
 	    	SmartDashboard.putNumber("Encoder Distance",Front_Right_Encoder.get());
 	    	SmartDashboard.putNumber("Encoder Rate",Front_Right_Encoder.getRate());
 		*/
-	    	 mecanum_fieldOriented();
+	    	PowerDistributionPanel pdp = new PowerDistributionPanel();
+	    	//SmartDashboard.putNumber(key, value);
+	    	SmartDashboard.putNumber("Motor0 current", pdp.getCurrent(0));
+	    	SmartDashboard.putNumber("Motor1 current", pdp.getCurrent(1));
+	    	SmartDashboard.putNumber("Motor12 current", pdp.getCurrent(12));
+	    	SmartDashboard.putNumber("Motor13 current", pdp.getCurrent(13));	    	
+	    	SmartDashboard.putNumber("pdp current",pdp.getVoltage());
+	    	
+	    	//mecanum_fieldOriented();
 	    	if (leftStick.getRawButton(1) == true)
-	    		roboGyro.reset();	
+	    		PIDEnable();
+	    		//roboGyro.reset();	
 	    	if (leftStick.getRawButton(2) == true)
-	    		EncoderReset();	
-	    
+	    		EncoderReset();
+	    	if (leftStick.getRawButton(7) == true)
+	    		PIDDisable();
+	    	DriveStraightDistance(36);
 	    }
 	    
 	    public double EncoderDistance(){
@@ -183,7 +232,34 @@ public class DRIVE155 {
 	    	Back_Left_Encoder.reset();
 	    }
 	    
+	    public boolean DriveStraightDistance(double distance) {
+	    	
+	    	
+	    	
+	    	//Front_Right_PID.setSetpoint(distance);
+	    	Front_Left_PID.setSetpoint(distance);
+	    	//Rear_Right_PID.setSetpoint(distance);
+	    	Rear_Left_PID.setSetpoint(distance);
+	    	return Front_Left_PID.onTarget();
+	    }
 
+	    public void PIDEnable(){
+	    Front_Left_PID.enable();
+	    Front_Right_PID.enable();
+	    Rear_Left_PID.enable();
+	    Rear_Right_PID.enable();
+	    }
+	    public void PIDDisable(){
+	    	Front_Left_PID.disable();
+		    Front_Right_PID.disable();
+		    Rear_Left_PID.disable();
+		    Rear_Right_PID.disable();
+		    Front_Left_PID.reset();
+		    Front_Right_PID.reset();
+		    Rear_Left_PID.reset();
+		    Rear_Right_PID.reset();
+	    }
+	    
 }    
 
 

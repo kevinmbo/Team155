@@ -9,8 +9,8 @@ public class Autonomous {
 	DRIVE155 robotDrive;
 	Lift155 robotLift;
 	robotMap155 robotMap;
-	//CameraThread robotVision;
-	Vision155 robotVision;
+	CameraThread robotVision;
+	//Vision155 robotVision;
 
 	// arcade state
 	final int DRIVE0 = 0;
@@ -36,8 +36,8 @@ public class Autonomous {
 	boolean readyToCarry = false;
 	DigitalInput toteSwitch;
 
-	public Autonomous(DRIVE155 drive, Lift155 lift, robotMap155 robot, Vision155 vision) {
-		//public Autonomous(DRIVE155 drive, Lift155 lift, robotMap155 robot, CameraThread vision) {
+	//public Autonomous(DRIVE155 drive, Lift155 lift, robotMap155 robot, Vision155 vision) {
+	public Autonomous(DRIVE155 drive, Lift155 lift, robotMap155 robot, CameraThread vision) {
 		robotDrive = drive;
 		robotLift = lift;
 		robotMap = robot;
@@ -185,4 +185,5 @@ public class Autonomous {
 		}
 		robotDrive.driveMecanum(heading, speed, direction);
 	}
+	
 }
