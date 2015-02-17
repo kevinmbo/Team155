@@ -6,19 +6,23 @@ import java.util.Vector;
 import org.usfirst.frc.team155.robot.Vision155.ParticleReport;
 
 import com.ni.vision.NIVision;
+//import com.ni.vision.NIVision.GetParticleInfoResult;
 import com.ni.vision.NIVision.Image;
 import com.ni.vision.NIVision.ImageType;
+import com.ni.vision.NIVision.RGBValue;
 
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.image.ParticleAnalysisReport;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.vision.USBCamera;
 
 public class CameraThread extends Thread {
 
 	int session;
 	// Image frame;
 	// AxisCamera camera;
+	//USBCamera camera;
 
 	int inited;
 	private boolean running;
@@ -32,11 +36,12 @@ public class CameraThread extends Thread {
 
 	CameraThread() {
 		frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_HSL, 0);
-		
+
 		// open the camera at the IP address assigned. This is the IP address
 		// that the camera
 		// can be accessed through the web interface.
 		// camera = new AxisCamera("10.1.55.11");
+		//camera = new USBCamera();
 		inited = 0;
 
 		// cc = new CriteriaCollection(); // create the criteria for the
@@ -59,17 +64,19 @@ public class CameraThread extends Thread {
 				NIVision.IMAQdxCameraControlMode.CameraControlModeController);
 		NIVision.IMAQdxConfigureGrab(session);
 
+		// NIVision.imaqWritePNGFile2(frame, "raw_image2", 750, colorTable, 0);
+
 		// Put default values to SmartDashboard so fields will appear
-		//SmartDashboard.putNumber("Tote hue min", TOTE_HUE_RANGE.minValue);
-	//	SmartDashboard.putNumber("Tote hue max", TOTE_HUE_RANGE.maxValue);
-	//	SmartDashboard.putNumber("Tote sat min", TOTE_SAT_RANGE.minValue);
-		//SmartDashboard.putNumber("Tote sat max", TOTE_SAT_RANGE.maxValue);
-		//SmartDashboard.putNumber("Tote val min", TOTE_VAL_RANGE.minValue);
-		//SmartDashboard.putNumber("Tote val max", TOTE_VAL_RANGE.maxValue);
-		//SmartDashboard.putNumber("Area min %", AREA_MINIMUM);
-		//Thread thread = new Thread();
-		running=true;
-		//thread.start();
+		// SmartDashboard.putNumber("Tote hue min", TOTE_HUE_RANGE.minValue);
+		// SmartDashboard.putNumber("Tote hue max", TOTE_HUE_RANGE.maxValue);
+		// SmartDashboard.putNumber("Tote sat min", TOTE_SAT_RANGE.minValue);
+		// SmartDashboard.putNumber("Tote sat max", TOTE_SAT_RANGE.maxValue);
+		// SmartDashboard.putNumber("Tote val min", TOTE_VAL_RANGE.minValue);
+		// SmartDashboard.putNumber("Tote val max", TOTE_VAL_RANGE.maxValue);
+		// SmartDashboard.putNumber("Area min %", AREA_MINIMUM);
+		// Thread thread = new Thread();
+		running = true;
+		// thread.start();
 		System.out.println("Starting thread");
 	}
 
@@ -105,54 +112,55 @@ public class CameraThread extends Thread {
 	int imaqError;
 
 	// Constants
-	
-	//// code for match
-	//NIVision.Range TOTE_HUE_RANGE = new NIVision.Range(24, 49); // Default hue
+
+	// // code for match
+	NIVision.Range TOTE_HUE_RANGE = new NIVision.Range(24, 49); // Default hue
 	// range for
 	// yellow tote
-//NIVision.Range TOTE_SAT_RANGE = new NIVision.Range(67, 255); // Default
-		// saturation
-		// range for
-		// yellow
-		// tote
-//NIVision.Range TOTE_VAL_RANGE = new NIVision.Range(49, 255); // Default
-		// value
-		// range for
-		// yellow
-		// tote 
-	
-	/////code for auditorium
-//NIVision.Range TOTE_HUE_RANGE = new NIVision.Range(10, 50); // Default hue
-// range for
-
-// yellow tote
-//NIVision.Range TOTE_SAT_RANGE = new NIVision.Range(90, 255); // Default
+	NIVision.Range TOTE_SAT_RANGE = new NIVision.Range(67, 255); // Default
 	// saturation
 	// range for
 	// yellow
 	// tote
-//NIVision.Range TOTE_VAL_RANGE = new NIVision.Range(90, 255); // Default
+	NIVision.Range TOTE_VAL_RANGE = new NIVision.Range(49, 255); // Default
 	// value
 	// range for
 	// yellow
 	// tote
 
+	// ///code for auditorium
+	// NIVision.Range TOTE_HUE_RANGE = new NIVision.Range(10, 50); // Default
+	// hue
+	// range for
 
-////code for library 5 pm
-NIVision.Range TOTE_HUE_RANGE = new NIVision.Range(25, 50); // Default hue
-// range for
-// yellow tote
-NIVision.Range TOTE_SAT_RANGE = new NIVision.Range(125, 255); // Default
+	// yellow tote
+	// NIVision.Range TOTE_SAT_RANGE = new NIVision.Range(90, 255); // Default
 	// saturation
 	// range for
 	// yellow
 	// tote
-NIVision.Range TOTE_VAL_RANGE = new NIVision.Range(125, 255); // Default
+	// NIVision.Range TOTE_VAL_RANGE = new NIVision.Range(90, 255); // Default
 	// value
 	// range for
 	// yellow
-	// tote 
-double AREA_MINIMUM = 0.5; // Default Area minimum for particle as a
+	// tote
+
+	// //code for library 5 pm
+	// NIVision.Range TOTE_HUE_RANGE = new NIVision.Range(25, 50); // Default
+	// hue
+	// range for
+	// yellow tote
+	// NIVision.Range TOTE_SAT_RANGE = new NIVision.Range(125, 255); // Default
+	// saturation
+	// range for
+	// yellow
+	// tote
+	// NIVision.Range TOTE_VAL_RANGE = new NIVision.Range(125, 255); // Default
+	// value
+	// range for
+	// yellow
+	// tote
+	double AREA_MINIMUM = 0.5; // Default Area minimum for particle as a
 								// percentage of total image area
 	double LONG_RATIO = 2.22; // Tote long side = 26.9 / Tote height = 12.1 =
 								// 2.22
@@ -241,11 +249,13 @@ double AREA_MINIMUM = 0.5; // Default Area minimum for particle as a
 	 * Math.PI / (180 * 2))); }
 	 */
 	public void run() {
+		// public void run(RGBValue colorTable) {
 		double runTime;
+		
 		while (running) {
-			 runTime = Timer.getFPGATimestamp();
+			runTime = Timer.getFPGATimestamp();
 			System.out.println("Timer starting " + runTime);
-			System.out.println("running...");
+			System.out.println("Vision is running...");
 			// read file in from disk. For this example to run you need to copy
 			// image20.jpg from the SampleImages folder to the
 			// directory shown below using FTP or SFTP:
@@ -254,33 +264,37 @@ double AREA_MINIMUM = 0.5; // Default Area minimum for particle as a
 			// "/home/lvuser/SampleImages/image20.jpg");
 
 			NIVision.IMAQdxStartAcquisition(session);
-
+			
+			//camera.setWhiteBalanceManual(3500);
+			//camera.startCapture();
+			//camera.getImage(frame);
+			//camera.stopCapture();
 			NIVision.IMAQdxGrab(session, frame, 1);
 			// NIVision.imaqDrawShapeOnImage(frame, frame, rect,
 			// DrawMode.DRAW_VALUE, ShapeMode.SHAPE_OVAL, 0.0f);
 
-			// CameraServer.getInstance().setImage(frame);
+			 CameraServer.getInstance().setImage(frame);
 
 			/** robot code here! **/
 			// Timer.delay(0.005); // wait for a motor update time
 
-			// NIVision.IMAQdxStopAcquisition(session);
+			NIVision.IMAQdxStopAcquisition(session);
 
 			// Update threshold values from SmartDashboard. For performance
 			// reasons
 			// it is recommended to remove this after calibration is finished.
-			//TOTE_HUE_RANGE.minValue = (int) SmartDashboard.getNumber(
-				//	"Tote hue min", TOTE_HUE_RANGE.minValue);
-			//TOTE_HUE_RANGE.maxValue = (int) SmartDashboard.getNumber(
-			//		"Tote hue max", TOTE_HUE_RANGE.maxValue);
-			//TOTE_SAT_RANGE.minValue = (int) SmartDashboard.getNumber(
-			//		"Tote sat min", TOTE_SAT_RANGE.minValue);
-			//TOTE_SAT_RANGE.maxValue = (int) SmartDashboard.getNumber(
-			//		"Tote sat max", TOTE_SAT_RANGE.maxValue);
-			//TOTE_VAL_RANGE.minValue = (int) SmartDashboard.getNumber(
-			//		"Tote val min", TOTE_VAL_RANGE.minValue);
-			//TOTE_VAL_RANGE.maxValue = (int) SmartDashboard.getNumber(
-			//		"Tote val max", TOTE_VAL_RANGE.maxValue);
+			// TOTE_HUE_RANGE.minValue = (int) SmartDashboard.getNumber(
+			// "Tote hue min", TOTE_HUE_RANGE.minValue);
+			// TOTE_HUE_RANGE.maxValue = (int) SmartDashboard.getNumber(
+			// "Tote hue max", TOTE_HUE_RANGE.maxValue);
+			// TOTE_SAT_RANGE.minValue = (int) SmartDashboard.getNumber(
+			// "Tote sat min", TOTE_SAT_RANGE.minValue);
+			// TOTE_SAT_RANGE.maxValue = (int) SmartDashboard.getNumber(
+			// "Tote sat max", TOTE_SAT_RANGE.maxValue);
+			// TOTE_VAL_RANGE.minValue = (int) SmartDashboard.getNumber(
+			// "Tote val min", TOTE_VAL_RANGE.minValue);
+			// TOTE_VAL_RANGE.maxValue = (int) SmartDashboard.getNumber(
+			// "Tote val max", TOTE_VAL_RANGE.maxValue);
 
 			// Threshold the image looking for yellow (tote color)
 			NIVision.imaqColorThreshold(binaryFrame, frame, 255,
@@ -289,15 +303,17 @@ double AREA_MINIMUM = 0.5; // Default Area minimum for particle as a
 
 			// Send particle count to dashboard
 			int numParticles = NIVision.imaqCountParticles(binaryFrame, 1);
-			//SmartDashboard.putNumber("Masked particles", numParticles);
+			System.out.println("particle count =" + numParticles);
+			// SmartDashboard.putNumber("Masked particles", numParticles);
 
 			// Send masked image to dashboard to assist in tweaking mask.
-			CameraServer.getInstance().setImage(binaryFrame);
-			//CameraServer.getInstance().setImage(frame);
+			CameraServer.getInstance().setImage(frame);
+			//CameraServer.getInstance().setImage(binaryFrame);
 
 			// filter out small particles
 			float areaMin = (float) SmartDashboard.getNumber("Area min %",
-				AREA_MINIMUM);
+					AREA_MINIMUM);
+			System.out.println("areaMin =" + areaMin);
 			criteria[0].lower = areaMin;
 			// imaqError = NIVision.imaqParticleFilter4(binaryFrame,
 			// binaryFrame,
@@ -305,33 +321,37 @@ double AREA_MINIMUM = 0.5; // Default Area minimum for particle as a
 
 			// Send particle count after filtering to dashboard
 			numParticles = NIVision.imaqCountParticles(binaryFrame, 1);
-			//SmartDashboard.putNumber("Filtered particles", numParticles);
+			System.out.println("particle count after filtering ="
+					+ numParticles);
+			// SmartDashboard.putNumber("Filtered particles", numParticles);
+
 			double biggest = 0;
 			int tempindex = 0;
 			if (numParticles > 0) {
 				// Measure particles and sort by particle size
 				Vector<ParticleReport> particles = new Vector<ParticleReport>();
-				biggest = 0;
-				tempindex = 0;
+				// biggest = 0;
+				// tempindex = 0;
 				for (int particleIndex = 0; particleIndex < numParticles; particleIndex++) {
 					ParticleReport par = new ParticleReport();
-					//par.PercentAreaToImageArea = NIVision.imaqMeasureParticle(
-					//		binaryFrame, particleIndex, 0,
-					//		NIVision.MeasurementType.MT_AREA_BY_IMAGE_AREA);
+					// par.PercentAreaToImageArea =
+					// NIVision.imaqMeasureParticle(
+					// binaryFrame, particleIndex, 0,
+					// NIVision.MeasurementType.MT_AREA_BY_IMAGE_AREA);
 					par.Area = NIVision.imaqMeasureParticle(binaryFrame,
 							particleIndex, 0, NIVision.MeasurementType.MT_AREA);
-					//par.ConvexHullArea = NIVision.imaqMeasureParticle(
-					//		binaryFrame, particleIndex, 0,
-					//		NIVision.MeasurementType.MT_CONVEX_HULL_AREA);
-					//par.BoundingRectTop = NIVision.imaqMeasureParticle(
-					//		binaryFrame, particleIndex, 0,
-					//		NIVision.MeasurementType.MT_BOUNDING_RECT_TOP);
+					// par.ConvexHullArea = NIVision.imaqMeasureParticle(
+					// binaryFrame, particleIndex, 0,
+					// NIVision.MeasurementType.MT_CONVEX_HULL_AREA);
+					// par.BoundingRectTop = NIVision.imaqMeasureParticle(
+					// binaryFrame, particleIndex, 0,
+					// NIVision.MeasurementType.MT_BOUNDING_RECT_TOP);
 					par.BoundingRectLeft = NIVision.imaqMeasureParticle(
 							binaryFrame, particleIndex, 0,
 							NIVision.MeasurementType.MT_BOUNDING_RECT_LEFT);
-					//par.BoundingRectBottom = NIVision.imaqMeasureParticle(
-					//		binaryFrame, particleIndex, 0,
-					//		NIVision.MeasurementType.MT_BOUNDING_RECT_BOTTOM);
+					// par.BoundingRectBottom = NIVision.imaqMeasureParticle(
+					// binaryFrame, particleIndex, 0,
+					// NIVision.MeasurementType.MT_BOUNDING_RECT_BOTTOM);
 					par.BoundingRectRight = NIVision.imaqMeasureParticle(
 							binaryFrame, particleIndex, 0,
 							NIVision.MeasurementType.MT_BOUNDING_RECT_RIGHT);
@@ -340,20 +360,25 @@ double AREA_MINIMUM = 0.5; // Default Area minimum for particle as a
 						biggest = par.Area;
 						tempindex = particleIndex;
 						if (biggest > 2000) {
+							System.out.println("Tote Found!!");
 							m_foundTote = true;
 						} else {
+							System.out.println("Tote NOT Found!!");
 							m_foundTote = false;
 						}
 					}
 				}
-				//SmartDashboard.putNumber("Index of tote", tempindex);
+				// SmartDashboard.putNumber("Index of tote", tempindex);
 				horizontal = (particles.get(tempindex).BoundingRectLeft + particles
 						.get(tempindex).BoundingRectRight) / 2;
-				//vertical = (particles.get(tempindex).BoundingRectTop + particles
-				//		.get(tempindex).BoundingRectBottom) / 2;
+				System.out.println("x coord1 =" + horizontal);
+				// vertical = (particles.get(tempindex).BoundingRectTop +
+				// particles
+				// .get(tempindex).BoundingRectBottom) / 2;
 				SmartDashboard.putNumber("x coord1 = ", horizontal);
-				//SmartDashboard.putNumber("y coord", vertical);
-				//SmartDashboard.putNumber("area", particles.get(tempindex).Area);
+				// SmartDashboard.putNumber("y coord", vertical);
+				// SmartDashboard.putNumber("area",
+				// particles.get(tempindex).Area);
 				SmartDashboard.putBoolean("m_FoundTote=", m_foundTote);
 
 				particles.sort(null);
@@ -394,7 +419,8 @@ double AREA_MINIMUM = 0.5; // Default Area minimum for particle as a
 			//
 			// Timer.delay(0.1); // wait for a motor update time
 			// we're done, so let's give others a chance to run
-			System.out.println("Timer stop "  + (Timer.getFPGATimestamp() - runTime));
+			System.out.println("Timer stop "
+					+ (Timer.getFPGATimestamp() - runTime));
 			try {
 				// Thread.
 				Thread.sleep((long) 0);// - (Timer.getFPGATimestamp() -
@@ -404,14 +430,19 @@ double AREA_MINIMUM = 0.5; // Default Area minimum for particle as a
 				ex.printStackTrace();
 			}
 		}
-	
+
 	}
 
 	public double getTotePosition() {
+		System.out.println("In getTotePosition...");
+		System.out.println("horizontal = " + horizontal);
 		return horizontal;
 	}
 
 	public boolean hasFoundTote() {
+		System.out.println("In hasFoundTote...");
+		System.out.println("m_foundTote = " + m_foundTote);
 		return m_foundTote;
 	}
+
 }

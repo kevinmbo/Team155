@@ -3,6 +3,7 @@ package org.usfirst.frc.team155.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -22,6 +23,7 @@ public class Robot extends IterativeRobot {
 	DRIVE155 robotDrive;
 	Joystick rightStick;
 	Joystick leftStick;
+	Joystick liftStick;
 	Autonomous Auto155;
 	//Vision155 robotVision;
 	CameraThread cameraThread;
@@ -30,8 +32,9 @@ public class Robot extends IterativeRobot {
     public void robotInit() {
     	rightStick = new Joystick(1);
     	leftStick = new Joystick(0);
+    	liftStick = new Joystick(2);
     	robot = new robotMap155();
-    	robotLift = new Lift155(robot, rightStick);
+    	robotLift = new Lift155(robot, liftStick);
     	robotDrive = new DRIVE155(leftStick, rightStick, robot);
     	cameraThread = new CameraThread();
     	//cameraThread.setPriority(Thread.MIN_PRIORITY);
@@ -47,15 +50,22 @@ public class Robot extends IterativeRobot {
     
     public void autonomousInit() {
     	robotDrive.GyroReset();
-    	Auto155.state= Auto155.DRIVE0;
+    	//robotDrive.PIDEnable();
+    	Auto155.state= Auto155.START2;
+    	//robotDrive.EncoderReset();
     	//CameraThread.run();
+    	Auto155.BOX_COUNTER = 0;
     }
     /**
      * This function is called periodically during autonomous
      */
     public void autonomousPeriodic() {
-    	Auto155.centerTote();
+    	Auto155.autoLine();
     	//robotVision.run();
+    	//robotDrive.DriveSideDistance(84);
+    	SmartDashboard.putNumber("Gyro", robotDrive.roboGyro.getAngle());
+    	robotDrive.EncoderRate();
+    	
     }
 
     public void teleopInit() {
@@ -71,8 +81,10 @@ public class Robot extends IterativeRobot {
     		//call lift run() method
     		robotLift.run();
     		//robotVision.run();
-    		robotDrive.EncoderDistance();
-    		robotDrive.EncoderRate();
+    		//robotDrive.EncoderDistance();
+    		//robotDrive.EncoderRate();
+    		Auto155.displayRangeFinder();
+        	SmartDashboard.putNumber("Gyro", robotDrive.roboGyro.getAngle());
     		
     }
     

@@ -38,9 +38,9 @@ public class robotMap155 {
     public final int SOL_6 = 6;
     public final int SOL_7 = 7;
     //digital I/O
-    
-    public final int LOW_LIMIT = 0;
-    public final int HIGH_LIMIT = 1;
+
+    public final int LIFT_ENCODER_A = 0;
+    public final int LIFT_ENCODER_B = 1;
     public final int FRONT_RIGHT_ENCODER_A = 2;
     public final int FRONT_RIGHT_ENCODER_B = 3;
     public final int FRONT_LEFT_ENCODER_A = 4;
@@ -50,8 +50,8 @@ public class robotMap155 {
     public final int BACK_LEFT_ENCODER_A = 8;
     public final int BACK_LEFT_ENCODER_B = 9;
     public final int TOTE_SWITCH = 10;
-    public final int LIFT_ENCODER_A = 11;
-    public final int LIFT_ENCODER_B = 12;
+    public final int LOW_LIMIT = 11;
+    public final int HIGH_LIMIT = 12;
     
     //relays
     public final int RELAY_0 = 0;
@@ -79,10 +79,10 @@ public class robotMap155 {
 
     }
 
-    public void sensorOutput() {
+   // public void sensorOutput() {
 
-        SmartDashboard.putBoolean("Ball Switch = ", dig1.get());
+   //     SmartDashboard.putBoolean("Ball Switch = ", dig1.get());
 
-    }
+  //  }
 }
 
