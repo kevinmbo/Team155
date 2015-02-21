@@ -28,10 +28,12 @@ public class Lift155 {
 	final int TWO_CRATE = 200;
 	final int THREE_CRATE = 300;
 	final int FOUR_HEIGHT = 400;
+	boolean readyToCarry = false;
 
 	public final int GROUND_LEVEL = 0;
-	public final int CARRY_BOX = 1;
+	public final int CARRY_BOX = 24;
 	public final int STACK_BOX = 2;
+	public boolean resetpid = true;
 
 	public Lift155(robotMap155 robot, Joystick right) {
 		robotSystem = robot;
@@ -48,19 +50,59 @@ public class Lift155 {
 				.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
 		liftMotorPID = new PIDController(kP, kI, kD, liftEncoder, liftDrive);
 		liftMotorPID.setOutputRange(-1, 1);
+		liftMotorPID.setAbsoluteTolerance(2);
 
 	}
 
 	// TeamCheer Involves Waffles
 
 	// LIFT METHOD
+	public void liftTest(){
+		// lift the tote
+
+		double carryHeight;
+		
+
+		if (readyToCarry == false) {
+			carryHeight = GROUND_LEVEL;
+			System.out.println("Here 1");
+			if (liftMotorPID.onTarget() == true){
+				readyToCarry = true;
+				System.out.println("Here 2");
+			}
+		} else
+			{
+			carryHeight = CARRY_BOX;
+			System.out.println("Here 3");
+			}
+		
+		if ((readyToCarry == true) && (liftMotorPID.onTarget())
+				&& (carryHeight == CARRY_BOX)) {
+			if (rightStick.getRawButton(1)){
+				carryHeight = GROUND_LEVEL;
+				readyToCarry = false;
+				System.out.println("Here 4");
+			}
+		
+		}
+		autoLift(carryHeight);
+		System.out.println("Carry height " + carryHeight);
+		SmartDashboard.putBoolean("Ready to Carry = ",readyToCarry);
+		SmartDashboard.putBoolean("on target = ",liftMotorPID.onTarget() );
+		SmartDashboard.putBoolean("Joystick trigger = ",rightStick.getRawButton(1) );
+		
+		
+		
+		
+		
+	}
 
 	private void manualLift() {
 		liftMotorPID.disable();
-		System.out.println("manualLift is running...");
-		System.out.println("highLimit.get()" + highLimit.get());
-		System.out.println("lowLimit.get()" + lowLimit.get());
-		System.out.println("rightStick.getY()" + rightStick.getY());
+		//System.out.println("manualLift is running...");
+		//System.out.println("highLimit.get()" + highLimit.get());
+		//System.out.println("lowLimit.get()" + lowLimit.get());
+		//System.out.println("rightStick.getY()" + rightStick.getY());
 
 		if (highLimit.get() || lowLimit.get())
 			if (lowLimit.get() && (rightStick.getY() > 0))
@@ -78,32 +120,35 @@ public class Lift155 {
 	}
 
 	public void manualLiftnoSensors() {
-		System.out.println("manualLiftnoSensors is running...");
-		System.out.println("rightStick.getY() = " + rightStick.getY());
+		//System.out.println("manualLiftnoSensors is running...");
+		//System.out.println("rightStick.getY() = " + rightStick.getY());
 
 		liftDrive.set(rightStick.getY());
 	}
 
 	public void autoLift(double setPoint) {
+		resetpid = true;
 
 		if (highLimit.get() || lowLimit.get())
-			if (lowLimit.get() && (liftMotorPID.get() > 0)) {
+			if (lowLimit.get() && (liftMotorPID.get() >= 0)) {
 				liftMotorPID.enable();
-				liftMotorPID.setSetpoint(setPoint);
-			} else if (highLimit.get() && (liftMotorPID.get() < 0)) {
+				//liftMotorPID.setSetpoint(setPoint);
+			} else if (highLimit.get() && (liftMotorPID.get() <= 0)) {
 				liftMotorPID.enable();
-				liftMotorPID.setSetpoint(setPoint);
+				//liftMotorPID.setSetpoint(setPoint);
 			} else {
 				liftMotorPID.disable();
+				//liftMotorPID.reset();
 				liftDrive.set(0);
 			}
 		else {
 			liftMotorPID.enable();
-			liftMotorPID.setSetpoint(setPoint);// You Will Never Find A Pony
+			//liftMotorPID.setSetpoint(setPoint);// You Will Never Find A Pony
 												// More Majestic Than Waffles
 		}
-
+		liftMotorPID.setSetpoint(setPoint);
 		SmartDashboard.putNumber("lift motor PID is", liftMotorPID.get());
+		SmartDashboard.putNumber("Lift Height = ", liftEncoder.getDistance());
 	}
 
 	public boolean onTarget() {
@@ -137,7 +182,7 @@ public class Lift155 {
 	}
 
 	public void run() {
-		System.out.println("Lift is running...");
+		//System.out.println("Lift is running...");
 		// call lift....
 		// manualLift();
 		// manualLiftnoSensors();
@@ -151,18 +196,30 @@ public class Lift155 {
 			autoLift(24);
 		else if (rightStick.getRawButton(8))
 			autoLift(44);
+		else if (rightStick.getRawButton(9))
+			liftTest();
+			
 		else {
+			if(resetpid){
+			liftMotorPID.reset();
+			liftDrive.set(0);
+			resetpid = false;
+			System.out.println("reset pid");
+			}
+			
 			manualLift();
+			
 		}
 
 		// call grabber....
-		grabber();
+		//grabber();
 
 		SmartDashboard.putNumber("Distance", measureDistance());
-		SmartDashboard.putNumber("Lift Height = ", liftEncoder.getDistance());
+		//SmartDashboard.putNumber("Lift Height = ", liftEncoder.getDistance());
 		SmartDashboard.putBoolean("low limit", getLowLimit());
 		SmartDashboard.putBoolean("High Limit", getHighLimit());
 		SmartDashboard.getNumber("rightStick.getY() = ", rightStick.getY());
+		
 	}
 
 }

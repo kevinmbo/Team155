@@ -307,8 +307,8 @@ public class CameraThread extends Thread {
 			// SmartDashboard.putNumber("Masked particles", numParticles);
 
 			// Send masked image to dashboard to assist in tweaking mask.
-			CameraServer.getInstance().setImage(frame);
-			//CameraServer.getInstance().setImage(binaryFrame);
+			//CameraServer.getInstance().setImage(frame);
+			CameraServer.getInstance().setImage(binaryFrame);
 
 			// filter out small particles
 			float areaMin = (float) SmartDashboard.getNumber("Area min %",

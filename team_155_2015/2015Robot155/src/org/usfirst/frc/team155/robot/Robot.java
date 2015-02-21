@@ -39,9 +39,7 @@ public class Robot extends IterativeRobot {
     	cameraThread = new CameraThread();
     	//cameraThread.setPriority(Thread.MIN_PRIORITY);
     	cameraThread.start();
-
     	//robotVision = new Vision155();
-    	
     	//Auto155 = new Autonomous(robotDrive, robotLift, robot, robotVision);
     	Auto155 = new Autonomous(robotDrive, robotLift, robot, cameraThread);
     	
@@ -60,7 +58,10 @@ public class Robot extends IterativeRobot {
      * This function is called periodically during autonomous
      */
     public void autonomousPeriodic() {
-    	Auto155.autoLine();
+    	Auto155.autoLine();		//code to pick up/stack 3 totes and move into scoring zone
+    	//Auto155.autoLine3();  //code to push tote/barrel sideways into scoring zone 
+    	//Auto155.autoLine4();  //code to pick up 1 tote, turn, and move into scoring zone
+    	//Auto155.liftTest();	
     	//robotVision.run();
     	//robotDrive.DriveSideDistance(84);
     	SmartDashboard.putNumber("Gyro", robotDrive.roboGyro.getAngle());
