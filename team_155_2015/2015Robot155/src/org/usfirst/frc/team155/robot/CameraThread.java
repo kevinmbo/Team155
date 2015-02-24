@@ -60,7 +60,7 @@ public class CameraThread extends Thread {
 
 		// the camera name (ex "cam0") can be found through the roborio web
 		// interface
-		session = NIVision.IMAQdxOpenCamera("cam0",
+		session = NIVision.IMAQdxOpenCamera("cam2",
 				NIVision.IMAQdxCameraControlMode.CameraControlModeController);
 		NIVision.IMAQdxConfigureGrab(session);
 
@@ -416,9 +416,6 @@ public class CameraThread extends Thread {
 			// } else {
 			// SmartDashboard.putBoolean("IsTote", false);
 			// }
-			//
-			// Timer.delay(0.1); // wait for a motor update time
-			// we're done, so let's give others a chance to run
 			System.out.println("Timer stop "
 					+ (Timer.getFPGATimestamp() - runTime));
 			try {

@@ -73,6 +73,16 @@ public class DRIVE155 {
 	double Rear_Left_Ki = 0;
 	double Rear_Left_Kd = 0;
 
+	// for the gyro stabilized field oriented drive
+	private double foo = 2;			//more of an integration scaling factor.
+	private double headingSetPoint;
+	private double error;
+	private double PIDoutput;
+	private double Kp_FieldOrientedControl=.02;		//not tuned
+	private boolean holdHeading;
+	private boolean prevCentered;
+	private boolean centered;
+
 	public DRIVE155(Joystick left, Joystick right, robotMap155 robot) {
 		robotSystem = robot;
 		sDash = new SmartDashboard();
@@ -143,6 +153,11 @@ public class DRIVE155 {
 		Rear_Right_PID.setOutputRange(-.5, .5);
 
 		// PIDGyro = new PIDController(Kp,Ki,Kd,roboGyro,PIDGyroOut);
+		
+		headingSetPoint=0;
+		holdHeading=true;
+		prevCentered=false;
+		centered=false;
 	}
 
 	// drive modes
@@ -251,6 +266,11 @@ public class DRIVE155 {
 
 	public void GyroReset() {
 		roboGyro.reset();
+		
+		headingSetPoint=0;
+		holdHeading=true;
+		prevCentered=false;
+		centered=false;
 
 	}
 
@@ -275,22 +295,62 @@ public class DRIVE155 {
 		 */
 		EncoderDistance();
 		PowerDistributionPanel pdp = new PowerDistributionPanel();
-		// SmartDashboard.putNumber(key, value);
-		SmartDashboard.putNumber("Motor0 current", pdp.getCurrent(0));
-		SmartDashboard.putNumber("Motor1 current", pdp.getCurrent(1));
-		SmartDashboard.putNumber("Motor12 current", pdp.getCurrent(12));
-		SmartDashboard.putNumber("Motor13 current", pdp.getCurrent(13));
-		SmartDashboard.putNumber("pdp current", pdp.getVoltage());
+		// / SmartDashboard.putNumber(key, value);
+		// SmartDashboard.putNumber("Motor0 current", pdp.getCurrent(0));
+		// SmartDashboard.putNumber("Motor1 current", pdp.getCurrent(1));
+		// SmartDashboard.putNumber("Motor12 current", pdp.getCurrent(12));
+		// SmartDashboard.putNumber("Motor13 current", pdp.getCurrent(13));
+		// SmartDashboard.putNumber("pdp current", pdp.getVoltage());
 
-		mecanum_fieldOriented();
+		// mecanum_fieldOriented();
+		team155Mecanum_fieldOriented();
 		if (leftStick.getRawButton(1) == true)
 			// PIDEnable();
-			roboGyro.reset();
+			GyroReset();
 		if (leftStick.getRawButton(2) == true)
 			EncoderReset();
 		if (leftStick.getRawButton(7) == true)
 			PIDDisable();
 		// DriveStraightDistance(36);
+	}
+
+	void team155Mecanum_fieldOriented() {
+		
+		prevCentered=centered;
+		
+		
+		//is it centered?
+		if ( Math.abs(rightStick.getX()) < .05) //may need to be upped
+			centered=true;
+		else{
+			headingSetPoint = rightStick.getX() * foo + headingSetPoint;	//must not be centered, so... command to turn
+			centered = false;
+		}
+		
+		
+		//rising edge detector
+		if ((!prevCentered) && centered)		
+			holdHeading=true;
+		else
+			holdHeading=false;		//was implied to be false
+		
+		//on a rising edge, set the heading to hold
+		if (holdHeading){
+			headingSetPoint=roboGyro.getAngle();
+			holdHeading=false;
+		}
+		
+		error = -roboGyro.getAngle() + headingSetPoint;
+		PIDoutput = error*Kp_FieldOrientedControl;
+		
+		SmartDashboard.putNumber("heading setpoint is ", headingSetPoint);
+		SmartDashboard.putNumber("PIDoutput is ", PIDoutput);
+		SmartDashboard.putNumber("rightStick.getX is ", rightStick.getX());
+		
+		
+		
+		myrobot.mecanumDrive_Cartesian(leftStick.getX(), leftStick.getY(),
+				PIDoutput, roboGyro.getAngle());
 	}
 
 	public double EncoderDistance() {
@@ -299,23 +359,32 @@ public class DRIVE155 {
 		double distance_Back_Right;
 		double distance_Front_Right;
 		double averageDistance;
+		System.out.println("in EncoderDistance ");
 		distance_Front_Left = Front_Left_Encoder.getDistance();
 		distance_Back_Left = Back_Left_Encoder.getDistance();
 		distance_Front_Right = Front_Left_Encoder.getDistance();
 		distance_Back_Right = Back_Left_Encoder.getDistance();
+
+		System.out.println("distance_Front_Left = " + distance_Front_Left);
+		System.out.println("distance_Back_Left = " + distance_Back_Left);
+		System.out.println("distance_Front_Right = " + distance_Front_Right);
+		System.out.println("distance_Back_Right = " + distance_Back_Right);
+
 		// averageDistance = (distance_Front_Left + distance_Back_Left +
 		// distance_Front_Right + distance_Back_Right) / 4;
 		averageDistance = (distance_Front_Left + distance_Back_Left) / 2;
+		System.out.println("averageDistance = " + averageDistance);
+
 		SmartDashboard.putNumber("Average of left side encoder : ",
 				averageDistance);
 		SmartDashboard.putNumber("Back left Encoder Distance : ",
-				Back_Left_Encoder.getDistance());
+				distance_Front_Left);
 		SmartDashboard.putNumber("Front left Encoder Distance : ",
-				Front_Left_Encoder.getDistance());
+				distance_Front_Left);
 		SmartDashboard.putNumber("Back Right Encoder Distance : ",
-				Back_Right_Encoder.getDistance());
+				distance_Back_Right);
 		SmartDashboard.putNumber("Front Right Encoder Distance : ",
-				Front_Right_Encoder.getDistance());
+				distance_Front_Right);
 
 		return averageDistance;
 	}
@@ -325,8 +394,12 @@ public class DRIVE155 {
 		System.out.println("in EncoderRate");
 
 		rate = Front_Left_Encoder.getRate();
+		rate = Back_Left_Encoder.getRate();
+		rate = Back_Right_Encoder.getRate();
+		rate = Front_Right_Encoder.getRate();
 
 		System.out.println("rate = " + rate);
+
 		SmartDashboard.putNumber("Back left Encoder Rate : ",
 				Back_Left_Encoder.getRate());
 		SmartDashboard.putNumber("Front left Encoder Rate: ",
