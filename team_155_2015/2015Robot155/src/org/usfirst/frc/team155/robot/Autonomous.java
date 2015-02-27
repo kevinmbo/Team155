@@ -66,6 +66,7 @@ public class Autonomous {
 	final int DROPTOTE4 = 7;
 	final int BACKUP4 = 8;
 	final int FINALSTOP4 = 9;
+	public int drivestate = 1;
 
 	// public Autonomous(DRIVE155 drive, Lift155 lift, robotMap155 robot,
 	// Vision155 vision) {
@@ -102,13 +103,37 @@ public class Autonomous {
 	}
 
 	public void driveToAutoZone() {
-		double distance = 84;
-		if (robotDrive.DriveStraightDistance(distance)) {
-			// robotDrive.PIDDisable();
-			// robotDrive.mecanumstop();
-		} else
-			robotDrive.DriveStraightDistance(distance);
 
+		switch (drivestate) {
+		case 1:
+
+			robotDrive.PIDEnable();
+			robotDrive.DriveStraightDistance(84);
+
+			if (robotDrive.DriveStraightDistance(84))
+				drivestate = 2;
+			break;
+
+		case 2:
+			System.out.println("in STOP4");
+			robotDrive.PIDDisable();
+			drivestate = 3;
+			break;
+
+		case 3:
+			System.out.println("in BACKUP4");
+			robotDrive.DriveStraightDistance(12);
+
+			if (robotDrive.DriveStraightDistance(12))
+				state = 4;
+			break;
+
+		case 4:
+			System.out.println("in FINALSTOP4");
+			robotDrive.PIDDisable();
+			break;
+
+		}
 	}
 
 	public void driveToTote() {
@@ -138,8 +163,9 @@ public class Autonomous {
 		System.out.println("In driveToToteRangeFinder");
 
 		// double midPoint = 40;
-		// ??????????????????? CHANGE THIS DEPENDING ON RANGE FINDER position in new robot
-		//double finalPoint = 8;
+		// ??????????????????? CHANGE THIS DEPENDING ON RANGE FINDER position in
+		// new robot
+		// double finalPoint = 8;
 		double finalPoint = 12;
 		double fullSpeed = -.18;
 		// double slowSpeed = -.25;
@@ -421,8 +447,8 @@ public class Autonomous {
 
 			// ???????????????? change to reflect the range finder distance on
 			// new robot
-			//if (robotLift.measureDistance() <= 8) {
-				if (robotLift.measureDistance() <= 12) {
+			// if (robotLift.measureDistance() <= 8) {
+			if (robotLift.measureDistance() <= 12) {
 				speed = 0;
 				state = LIFTTOTE2;
 			} else
@@ -547,11 +573,13 @@ public class Autonomous {
 
 		case BACKUP2:
 			System.out.println("in BACKUP2");
+			speed = .25;
+			// heading = 0;
+			// direction = 180;
 			System.out.println("heading = " + heading);
 			System.out.println("speed = " + speed);
 			System.out.println("direction = " + direction);
-			speed = .25;
-			System.out.println("speedd is : " + speed);
+			System.out.println("speed is : " + speed);
 			robotDrive.DriveStraightDistance(-24);
 			state = FINALSTOP2;
 			break;
@@ -581,51 +609,21 @@ public class Autonomous {
 			System.out.println("direction = " + direction);
 
 			startTimeDRIVE = Timer.getFPGATimestamp();
-			state = WAIT4;
+			state = FIRSTTOTE4;
+			robotDrive.PIDEnable();
 			break;
 
-		case WAIT4:
-			System.out.println("in WAIT4");
-			speed = 0;
-			heading = 0;
-			direction = 90;
-			System.out.println("speed = " + speed);
-			System.out.println("heading = " + heading);
-			System.out.println("direction = " + direction);
-
-			robotDrive.driveMecanum(heading, speed, direction);
-			if ((Timer.getFPGATimestamp()) - (startTimeDRIVE) > 1) {
-				state = FIRSTTOTE4;
-				startTimeDRIVE = Timer.getFPGATimestamp();
-			}
-
-			break;
 		case FIRSTTOTE4:
 			System.out.println("in FIRSTTOTE4");
 			heading = 0;
 			direction = 0;
-			System.out.println("speed = " + speed);
-			System.out.println("heading = " + heading);
-			System.out.println("direction = " + direction);
-			SmartDashboard.putNumber("RangeFinderDistance-FIRSTTOTE2",
-					robotLift.measureDistance());
-			System.out.println("RangeFinderDistance = "
-					+ robotLift.measureDistance());
 
-			// ???????????????? change to reflect the range finder distance on
 			// new robot
-			//if (robotLift.measureDistance() <= 8) {
-				if (robotLift.measureDistance() <= 12) {
-				speed = 0;
+			robotDrive.DriveStraightDistance(12);
+			if (robotDrive.DriveStraightDistance(12)) {
+				robotDrive.PIDDisable();
 				state = LIFTTOTE4;
-			} else
-				speed = .25;
-
-			System.out.println("speed = " + speed);
-			System.out.println("heading = " + heading);
-			System.out.println("direction = " + direction);
-
-			robotDrive.driveMecanum(heading, speed, direction);
+			}
 
 			startTimeDRIVE = Timer.getFPGATimestamp();
 			// SmartDashboard.putNumber("RangeFinderDistance",
@@ -638,26 +636,14 @@ public class Autonomous {
 			speed = 0;
 			heading = 0;
 			direction = 90;
-			System.out.println("speed = " + speed);
-			System.out.println("heading = " + heading);
-			System.out.println("direction = " + direction);
 
 			// lift the tote
 
-			double carryHeight;
-
-			if (readyToCarry == false) {
-				carryHeight = robotLift.GROUND_LEVEL;
-				if (robotLift.onTarget() == true)
-					readyToCarry = true;
-			} else
-				carryHeight = robotLift.CARRY_BOX;
-
-			if ((readyToCarry == true) && (robotLift.onTarget())) {
+			if (robotLift.onTarget()) {
 				state = TURN904;
 			}
 
-			robotLift.autoLift(carryHeight);
+			robotLift.autoLift(5);
 
 			// Pauses code to simulate lift
 			/*
@@ -720,18 +706,18 @@ public class Autonomous {
 			System.out.println("heading = " + heading);
 			System.out.println("speed = " + speed);
 			System.out.println("direction = " + direction);
-			carryHeight = robotLift.GROUND_LEVEL;
-			System.out.println("carry height = " + carryHeight);
-			robotLift.autoLift(carryHeight);
-			state = BACKUP4;
+
+			robotLift.autoLift(robotLift.GROUND_LEVEL);
+			if (robotLift.onTarget()) {
+				state = BACKUP4;
+				robotDrive.PIDEnable();
+			}
+
 			break;
 
 		case BACKUP4:
 			System.out.println("in BACKUP4");
-			System.out.println("heading = " + heading);
-			System.out.println("speed = " + speed);
-			System.out.println("direction = " + direction);
-			speed = .25;
+
 			System.out.println("speedd is : " + speed);
 			robotDrive.DriveStraightDistance(-24);
 			state = FINALSTOP4;

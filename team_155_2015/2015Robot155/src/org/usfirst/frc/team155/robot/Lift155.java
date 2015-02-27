@@ -31,7 +31,7 @@ public class Lift155 {
 	boolean readyToCarry = false;
 
 	public final int GROUND_LEVEL = 0;
-	public final int CARRY_BOX = 24;
+	public final int CARRY_BOX = 32;
 	public final int STACK_BOX = 2;
 	public boolean resetpid = true;
 
@@ -46,7 +46,7 @@ public class Lift155 {
 		liftEncoder = new Encoder(robotSystem.LIFT_ENCODER_A,
 				robotSystem.LIFT_ENCODER_B);
 		// liftEncoder.setDistancePerPulse(.01); // Competion bot
-		liftEncoder.setDistancePerPulse(0.01 * 2); // practice bot
+		liftEncoder.setDistancePerPulse(.03); // practice bot
 		liftEncoder
 				.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
 		liftMotorPID = new PIDController(kP, kI, kD, liftEncoder, liftDrive);
@@ -186,16 +186,13 @@ public class Lift155 {
 		if (rightStick.getRawButton(3) == true)
 			liftEncoder.reset();
 
-		if (rightStick.getRawButton(11)) // lifts arm for human station tote load
-			autoLift(20);
-		else if (rightStick.getRawButton(12)) // lifts arm for ?????
-			autoLift(20);
-		else if (rightStick.getRawButton(6))
-			autoLift(12);
-		else if (rightStick.getRawButton(7))
-			autoLift(24);
-		else if (rightStick.getRawButton(8))
-			autoLift(44);
+		
+		if (rightStick.getRawButton(10)) // lifts arm to catch from human loader
+			autoLift(32);
+		else if (rightStick.getRawButton(12)) // lifts arm out of the way to at human loader
+				autoLift(4);
+		else if (rightStick.getRawButton(8))  // lifts arm to max height
+			autoLift(40);
 		else if (rightStick.getRawButton(2))
 			liftTest();
 		else {
