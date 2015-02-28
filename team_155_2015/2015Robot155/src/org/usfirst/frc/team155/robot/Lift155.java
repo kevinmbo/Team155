@@ -45,8 +45,8 @@ public class Lift155 {
 		rangeFinder = new AnalogInput(robot.RANGE_FINDER);
 		liftEncoder = new Encoder(robotSystem.LIFT_ENCODER_A,
 				robotSystem.LIFT_ENCODER_B);
-		// liftEncoder.setDistancePerPulse(.01); // Competion bot
-		liftEncoder.setDistancePerPulse(.03); // practice bot
+		liftEncoder.setDistancePerPulse(.01); // Competion bot
+		//liftEncoder.setDistancePerPulse(.03); // practice bot
 		liftEncoder
 				.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
 		liftMotorPID = new PIDController(kP, kI, kD, liftEncoder, liftDrive);
@@ -86,11 +86,12 @@ public class Lift155 {
 		}
 		autoLift(carryHeight);
 		System.out.println("Carry height " + carryHeight);
+		/*
 		SmartDashboard.putBoolean("Ready to Carry = ", readyToCarry);
 		SmartDashboard.putBoolean("on target = ", liftMotorPID.onTarget());
 		SmartDashboard.putBoolean("Joystick trigger = ",
 				rightStick.getRawButton(1));
-
+		*/
 	}
 
 	private void manualLift() {
@@ -152,14 +153,14 @@ public class Lift155 {
 	}
 
 	// GRABBER method
-	private void grabber() {
+	/*private void grabber() {
 
 		if (rightStick.getTrigger())
 			sol.set(DoubleSolenoid.Value.kForward);
 		else
 			sol.set(DoubleSolenoid.Value.kReverse);
 
-	}
+	}*/
 
 	public double measureDistance() {
 

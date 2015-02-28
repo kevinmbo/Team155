@@ -45,8 +45,8 @@ public class robotMap155 {
     public final int FRONT_RIGHT_ENCODER_B = 3;
     public final int FRONT_LEFT_ENCODER_A = 4;
     public final int FRONT_LEFT_ENCODER_B = 5;
-    public final int BACK_RIGHT_ENCODER_A = 6;
-    public final int BACK_RIGHT_ENCODER_B = 7;
+    public final int BACK_RIGHT_ENCODER_A = 7;
+    public final int BACK_RIGHT_ENCODER_B = 6;
     public final int BACK_LEFT_ENCODER_A = 8;
     public final int BACK_LEFT_ENCODER_B = 9;
     public final int TOTE_SWITCH = 10;

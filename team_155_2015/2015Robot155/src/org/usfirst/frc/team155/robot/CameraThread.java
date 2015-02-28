@@ -20,9 +20,12 @@ import edu.wpi.first.wpilibj.vision.USBCamera;
 public class CameraThread extends Thread {
 
 	int session;
-	// Image frame;
+	Image frame;
+	Image frameFlipped;
+	Image binaryFrame;
+	int imaqError;
 	// AxisCamera camera;
-	//USBCamera camera;
+	// USBCamera camera;
 
 	int inited;
 	private boolean running;
@@ -36,12 +39,13 @@ public class CameraThread extends Thread {
 
 	CameraThread() {
 		frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_HSL, 0);
+		
 
 		// open the camera at the IP address assigned. This is the IP address
 		// that the camera
 		// can be accessed through the web interface.
 		// camera = new AxisCamera("10.1.55.11");
-		//camera = new USBCamera();
+		// camera = new USBCamera();
 		inited = 0;
 
 		// cc = new CriteriaCollection(); // create the criteria for the
@@ -60,7 +64,7 @@ public class CameraThread extends Thread {
 
 		// the camera name (ex "cam0") can be found through the roborio web
 		// interface
-		session = NIVision.IMAQdxOpenCamera("cam2",
+		session = NIVision.IMAQdxOpenCamera("cam1",
 				NIVision.IMAQdxCameraControlMode.CameraControlModeController);
 		NIVision.IMAQdxConfigureGrab(session);
 
@@ -107,9 +111,6 @@ public class CameraThread extends Thread {
 	 * ShortAspect; double AreaToConvexHullArea; };
 	 */
 	// Images
-	Image frame;
-	Image binaryFrame;
-	int imaqError;
 
 	// Constants
 
@@ -251,7 +252,7 @@ public class CameraThread extends Thread {
 	public void run() {
 		// public void run(RGBValue colorTable) {
 		double runTime;
-		
+
 		while (running) {
 			runTime = Timer.getFPGATimestamp();
 			System.out.println("Timer starting " + runTime);
@@ -264,16 +265,18 @@ public class CameraThread extends Thread {
 			// "/home/lvuser/SampleImages/image20.jpg");
 
 			NIVision.IMAQdxStartAcquisition(session);
-			
-			//camera.setWhiteBalanceManual(3500);
-			//camera.startCapture();
-			//camera.getImage(frame);
-			//camera.stopCapture();
+
+			// camera.setWhiteBalanceManual(3500);
+			// camera.startCapture();
+			// camera.getImage(frame);
+			// camera.stopCapture();
 			NIVision.IMAQdxGrab(session, frame, 1);
 			// NIVision.imaqDrawShapeOnImage(frame, frame, rect,
 			// DrawMode.DRAW_VALUE, ShapeMode.SHAPE_OVAL, 0.0f);
 
-			 CameraServer.getInstance().setImage(frame);
+			CameraServer.getInstance().setImage(frame);
+			//NIVision.imaqFlip(frameFlipped, frame, NIVision.FlipAxis.HORIZONTAL_AXIS);// Flip
+			// image
 
 			/** robot code here! **/
 			// Timer.delay(0.005); // wait for a motor update time
@@ -307,7 +310,7 @@ public class CameraThread extends Thread {
 			// SmartDashboard.putNumber("Masked particles", numParticles);
 
 			// Send masked image to dashboard to assist in tweaking mask.
-			//CameraServer.getInstance().setImage(frame);
+			// CameraServer.getInstance().setImage(frame);
 			CameraServer.getInstance().setImage(binaryFrame);
 
 			// filter out small particles
@@ -375,11 +378,11 @@ public class CameraThread extends Thread {
 				// vertical = (particles.get(tempindex).BoundingRectTop +
 				// particles
 				// .get(tempindex).BoundingRectBottom) / 2;
-				SmartDashboard.putNumber("x coord1 = ", horizontal);
+				//SmartDashboard.putNumber("x coord1 = ", horizontal);
 				// SmartDashboard.putNumber("y coord", vertical);
 				// SmartDashboard.putNumber("area",
 				// particles.get(tempindex).Area);
-				SmartDashboard.putBoolean("m_FoundTote=", m_foundTote);
+				//SmartDashboard.putBoolean("m_FoundTote=", m_foundTote);
 
 				particles.sort(null);
 			}

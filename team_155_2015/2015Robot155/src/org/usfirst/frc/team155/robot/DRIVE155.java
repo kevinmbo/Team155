@@ -29,17 +29,18 @@ public class DRIVE155 {
 	Joystick rightStick = new Joystick(2);
 
 	// MOTORS FOR COMPEITION ROBOT
-	// public Talon left_front;
-	// public Talon right_front;
-	// public Talon left_back;
-	// public Talon right_back;
+	 public Talon left_front;
+	 public Talon right_front;
+	 public Talon left_back;
+	 public Talon right_back;
 
 	// MOTORS FOR TEST ROBOT
+	/*
 	public Jaguar left_front;
 	public Jaguar right_front;
 	public Jaguar left_back;
 	public Jaguar right_back;
-
+	*/
 	public RobotDrive myrobot;
 
 	// DRIVE ENCODERS
@@ -101,16 +102,17 @@ public class DRIVE155 {
 		rightStick = right;
 
 		// MOTORS
-		// left_front = new Talon(robotSystem.DRIVE_LEFT_FRONT);
-		// right_front = new Talon(robotSystem.DRIVE_RIGHT_FRONT);
-		// left_back = new Talon(robotSystem.DRIVE_LEFT_BACK);
-		// right_back = new Talon(robotSystem.DRIVE_RIGHT_BACK);
-
+		left_front = new Talon(robotSystem.DRIVE_LEFT_FRONT);
+		right_front = new Talon(robotSystem.DRIVE_RIGHT_FRONT);
+		left_back = new Talon(robotSystem.DRIVE_LEFT_BACK);
+		right_back = new Talon(robotSystem.DRIVE_RIGHT_BACK);
+		
+		/*
 		left_front = new Jaguar(robotSystem.DRIVE_LEFT_FRONT);
 		right_front = new Jaguar(robotSystem.DRIVE_RIGHT_FRONT);
 		left_back = new Jaguar(robotSystem.DRIVE_LEFT_BACK);
 		right_back = new Jaguar(robotSystem.DRIVE_RIGHT_BACK);
-
+		*/
 		myrobot = new RobotDrive(left_front, left_back, right_front, right_back);
 
 		myrobot.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
@@ -152,6 +154,9 @@ public class DRIVE155 {
 				.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
 		Rear_Left_PID = new PIDController(Rear_Left_Kp, Rear_Left_Ki,
 				Rear_Left_Kd, Back_Left_Encoder, left_back);
+		
+
+		
 		Front_Left_PID.setAbsoluteTolerance(3);
 		Front_Right_PID.setAbsoluteTolerance(3);
 		Rear_Left_PID.setAbsoluteTolerance(3);
@@ -210,7 +215,7 @@ public class DRIVE155 {
 		pdp.clearStickyFaults(); // clear the brownouts from last run, if there
 									// are any
 
-		double maxturnRate = .75;
+		double maxturnRate = .5;
 
 		if (turnRate > maxturnRate)
 			turnRate = maxturnRate;
@@ -415,8 +420,8 @@ public class DRIVE155 {
 		PIDoutput = error*Kp_FieldOrientedControl;
 		
 		SmartDashboard.putNumber("heading setpoint is ", headingSetPoint);
-		SmartDashboard.putNumber("PIDoutput is ", PIDoutput);
-		SmartDashboard.putNumber("rightStick.getX is ", rightStick.getX());
+		//SmartDashboard.putNumber("PIDoutput is ", PIDoutput);
+		//SmartDashboard.putNumber("rightStick.getX is ", rightStick.getX());
 		
 		if (rightStick.getRawButton(1))
 			motorScale = 1;
@@ -450,7 +455,7 @@ public class DRIVE155 {
 		// distance_Front_Right + distance_Back_Right) / 4;
 		averageDistance = (distance_Front_Left + distance_Back_Left) / 2;
 		System.out.println("averageDistance = " + averageDistance);
-
+		
 		SmartDashboard.putNumber("Average of left side encoder : ",
 				averageDistance);
 		SmartDashboard.putNumber("Back left Encoder Distance : ",
@@ -475,7 +480,7 @@ public class DRIVE155 {
 		rate = Front_Right_Encoder.getRate();
 
 		System.out.println("rate = " + rate);
-
+		/*
 		SmartDashboard.putNumber("Back left Encoder Rate : ",
 				Back_Left_Encoder.getRate());
 		SmartDashboard.putNumber("Front left Encoder Rate: ",
@@ -484,6 +489,7 @@ public class DRIVE155 {
 				Back_Right_Encoder.getRate());
 		SmartDashboard.putNumber("Front Right Encoder Rate: ",
 				Front_Right_Encoder.getRate());
+		*/
 	}
 
 	public void EncoderReset() {
@@ -509,10 +515,10 @@ public class DRIVE155 {
 				Back_Right_Encoder.getDistance());
 		SmartDashboard.putNumber("Front Right Encoder Distance : ",
 				Front_Right_Encoder.getDistance());
-		Front_Right_PID.setSetpoint(distance);
-		Front_Left_PID.setSetpoint(-distance);
-		Rear_Right_PID.setSetpoint(distance);
-		Rear_Left_PID.setSetpoint(-distance);
+		Front_Right_PID.setSetpoint(-distance);		//this is done because the motors on opposite side of the robot
+		Front_Left_PID.setSetpoint(distance);
+		Rear_Right_PID.setSetpoint(-distance);		//this is done because the motors on opposite side of the robot
+		Rear_Left_PID.setSetpoint(distance);
 		return Front_Left_PID.onTarget();
 	}
 

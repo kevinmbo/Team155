@@ -93,7 +93,7 @@ public class Robot extends IterativeRobot {
     			break;
     		case 4:
     			modename =4;
-    			Auto155.autoLine4(); 
+    			Auto155.autoLine5(); 
     			break;
     		case 5:
     			modename =5;
