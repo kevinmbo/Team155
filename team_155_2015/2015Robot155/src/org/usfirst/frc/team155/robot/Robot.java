@@ -51,9 +51,9 @@ public class Robot extends IterativeRobot {
     	autoChooser = new SendableChooser();
     	autoChooser.addDefault("default, do nothing ", 1);
     	autoChooser.addObject("Push Straight", 2);
-    	autoChooser.addObject("Push Sideways", 3);
-    	autoChooser.addObject("Grab and Go", 4);
-    	autoChooser.addObject("Go for Broke", 5);
+    	autoChooser.addObject("Push Both Sideways", 3);
+    	autoChooser.addObject("Grab and Go Sideways", 4);
+    	
     	
     	SmartDashboard.putData("Automodechooser", autoChooser);
     }
@@ -69,6 +69,7 @@ public class Robot extends IterativeRobot {
     	mode = (int) autoChooser.getSelected();
     	Auto155.drivestate = 1;
     	Auto155.state = 0;
+    	cameraThread.enableProcessing();
     	
     }
     /**
@@ -93,12 +94,9 @@ public class Robot extends IterativeRobot {
     			break;
     		case 4:
     			modename =4;
-    			Auto155.autoLine5(); 
+    			Auto155.autoLine7(); 
     			break;
-    		case 5:
-    			modename =5;
-    			Auto155.autoLine();
-    			break;
+    		
     	}	
     	//Auto155.autoLine();		//code to pick up/stack 3 totes and move into scoring zone
     	//Auto155.autoLine3();  //code to push tote/barrel sideways into scoring zone 
@@ -113,6 +111,8 @@ public class Robot extends IterativeRobot {
     }
 
     public void teleopInit() {
+    	cameraThread.disableProcessing();
+    	robotDrive.PIDDisable();
         
     }
     

@@ -46,7 +46,7 @@ public class Lift155 {
 		liftEncoder = new Encoder(robotSystem.LIFT_ENCODER_A,
 				robotSystem.LIFT_ENCODER_B);
 		liftEncoder.setDistancePerPulse(.01); // Competion bot
-		//liftEncoder.setDistancePerPulse(.03); // practice bot
+		// liftEncoder.setDistancePerPulse(.03); // practice bot
 		liftEncoder
 				.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
 		liftMotorPID = new PIDController(kP, kI, kD, liftEncoder, liftDrive);
@@ -87,12 +87,50 @@ public class Lift155 {
 		autoLift(carryHeight);
 		System.out.println("Carry height " + carryHeight);
 		/*
-		SmartDashboard.putBoolean("Ready to Carry = ", readyToCarry);
-		SmartDashboard.putBoolean("on target = ", liftMotorPID.onTarget());
-		SmartDashboard.putBoolean("Joystick trigger = ",
-				rightStick.getRawButton(1));
-		*/
+		 * SmartDashboard.putBoolean("Ready to Carry = ", readyToCarry);
+		 * SmartDashboard.putBoolean("on target = ", liftMotorPID.onTarget());
+		 * SmartDashboard.putBoolean("Joystick trigger = ",
+		 * rightStick.getRawButton(1));
+		 */
 	}
+	
+	public void autoliftTest(boolean move_down) {
+		// lift the tote
+
+		double carryHeight;
+
+		if (readyToCarry == false) {
+			carryHeight = GROUND_LEVEL;
+			System.out.println("Here 1");
+			if (liftMotorPID.onTarget() == true) {
+				readyToCarry = true;
+				System.out.println("Here 2");
+			}
+		} else {
+			carryHeight = CARRY_BOX;
+			System.out.println("Here 3");
+		}
+
+		if ((readyToCarry == true) && (liftMotorPID.onTarget())
+				&& (carryHeight == CARRY_BOX)) {
+			if (move_down) {
+				carryHeight = GROUND_LEVEL;
+				readyToCarry = false;
+				System.out.println("Here 4");
+			}
+
+		}
+		autoLift(carryHeight);
+		System.out.println("Carry height " + carryHeight);
+		/*
+		 * SmartDashboard.putBoolean("Ready to Carry = ", readyToCarry);
+		 * SmartDashboard.putBoolean("on target = ", liftMotorPID.onTarget());
+		 * SmartDashboard.putBoolean("Joystick trigger = ",
+		 * rightStick.getRawButton(1));
+		 */
+	}
+	
+	
 
 	private void manualLift() {
 		liftMotorPID.disable();
@@ -144,8 +182,8 @@ public class Lift155 {
 			// More Majestic Than Waffles
 		}
 		liftMotorPID.setSetpoint(setPoint);
-		SmartDashboard.putNumber("lift motor PID is", liftMotorPID.get());
-		SmartDashboard.putNumber("Lift Height = ", liftEncoder.getDistance());
+		//SmartDashboard.putNumber("lift motor PID is", liftMotorPID.get());
+		//SmartDashboard.putNumber("Lift Height = ", liftEncoder.getDistance());
 	}
 
 	public boolean onTarget() {
@@ -153,14 +191,14 @@ public class Lift155 {
 	}
 
 	// GRABBER method
-	/*private void grabber() {
-
-		if (rightStick.getTrigger())
-			sol.set(DoubleSolenoid.Value.kForward);
-		else
-			sol.set(DoubleSolenoid.Value.kReverse);
-
-	}*/
+	/*
+	 * private void grabber() {
+	 * 
+	 * if (rightStick.getTrigger()) sol.set(DoubleSolenoid.Value.kForward); else
+	 * sol.set(DoubleSolenoid.Value.kReverse);
+	 * 
+	 * }
+	 */
 
 	public double measureDistance() {
 
@@ -187,13 +225,13 @@ public class Lift155 {
 		if (rightStick.getRawButton(3) == true)
 			liftEncoder.reset();
 
-		
 		if (rightStick.getRawButton(10)) // lifts arm to catch from human loader
-			autoLift(32);
-		else if (rightStick.getRawButton(12)) // lifts arm out of the way to at human loader
-				autoLift(4);
-		else if (rightStick.getRawButton(8))  // lifts arm to max height
-			autoLift(40);
+			autoLift(38);
+		else if (rightStick.getRawButton(12)) // lifts arm out of the way to at
+												// human loader
+			autoLift(7);
+		else if (rightStick.getRawButton(8)) // lifts arm to max height
+			autoLift(44);
 		else if (rightStick.getRawButton(2))
 			liftTest();
 		else {
@@ -211,11 +249,11 @@ public class Lift155 {
 		// call grabber....
 		// grabber();
 
-		SmartDashboard.putNumber("Distance", measureDistance());
+		//Dashboard.putNumber("Distance", measureDistance());
 		SmartDashboard.putNumber("Lift Height = ", liftEncoder.getDistance());
 		SmartDashboard.putBoolean("low limit", getLowLimit());
 		SmartDashboard.putBoolean("High Limit", getHighLimit());
-		SmartDashboard.getNumber("rightStick.getY() = ", rightStick.getY());
+		//SmartDashboard.getNumber("rightStick.getY() = ", rightStick.getY());
 
 	}
 

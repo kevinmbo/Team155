@@ -108,9 +108,9 @@ public class Autonomous {
 		case 1:
 
 			robotDrive.PIDEnable();
-			robotDrive.DriveStraightDistance(-84);
+			robotDrive.DriveStraightDistance(-160);
 
-			if (robotDrive.DriveStraightDistance(-84))
+			if (robotDrive.DriveStraightDistance(-160))
 				drivestate = 2;
 			break;
 
@@ -122,9 +122,9 @@ public class Autonomous {
 
 		case 3:
 			System.out.println("in BACKUP4");
-			robotDrive.DriveStraightDistance(-75);
+			robotDrive.DriveStraightDistance(-160);
 
-			if (robotDrive.DriveStraightDistance(-75))
+			if (robotDrive.DriveStraightDistance(-160))
 				state = 4;
 			break;
 
@@ -345,34 +345,30 @@ public class Autonomous {
 			System.out.println("in START3");
 			
 			startTimeDRIVE = Timer.getFPGATimestamp();
-			state = DRIVESIDEWAYS3;
-			robotDrive.PIDEnable();
+			state = STOP3;
+			//robotDrive.PIDEnable();
 			break;
+		case STOP3:
+			robotLift.autoLift(12);;
+			if (robotLift.onTarget()) {
+				state = DRIVESIDEWAYS3;
+			}
+			
 
 		case DRIVESIDEWAYS3:
 			
-
-			robotDrive.DriveSideDistance(120);
-
-			if (robotDrive.DriveSideDistance(120))
-				state = STOP3;
-			break;
-
-		case STOP3:
-			System.out.println("in STOP3");
+			robotDrive.team155Mecanum_fieldOriented(.5, 0, 0);
 			
-			state = BACKUP3;
-			//robotDrive.PIDDisable();
+			if (robotDrive.EncoderDistance()<-240)
+				state = FINALSTOP3;
+
+			//robotDrive.DriveSideDistance(160);
+
+			//if (robotDrive.DriveSideDistance(160))
+				//state = FINALSTOP3;
 			break;
 
-		case BACKUP3:
-			System.out.println("in BACKUP2");
-			robotDrive.DriveSideDistance(100);
-
-			if (robotDrive.DriveSideDistance(100))
-			state = FINALSTOP3;
-			break;
-
+		
 		case FINALSTOP3:
 			System.out.println("in FINALSTOP2");
 			
@@ -382,6 +378,50 @@ public class Autonomous {
 		}
 	}
 
+	public void autoLine7() {
+		double speed = 0;
+		double heading = 0;
+		double direction = 90;
+
+		switch (state) {
+		case START3:
+			System.out.println("in START3");
+			
+			startTimeDRIVE = Timer.getFPGATimestamp();
+			state = STOP3;
+			//robotDrive.PIDEnable();
+			break;
+		case STOP3:
+			robotLift.autoLift(12);;
+			if (robotLift.onTarget()) {
+				state = DRIVESIDEWAYS3;
+			}
+			
+
+		case DRIVESIDEWAYS3:
+			
+			robotDrive.team155Mecanum_fieldOriented(.5, 0, 0);
+			
+			if (robotDrive.EncoderDistance()<-160)
+				state = FINALSTOP3;
+
+			//robotDrive.DriveSideDistance(160);
+
+			//if (robotDrive.DriveSideDistance(160))
+				//state = FINALSTOP3;
+			break;
+
+		
+		case FINALSTOP3:
+			System.out.println("in FINALSTOP2");
+			
+			robotDrive.PIDDisable();
+			break;
+
+		}
+	}
+
+	
 	public void autoLine() {
 		double speed = 0;
 		double heading = 0;
@@ -740,9 +780,12 @@ public class Autonomous {
 
 			if (robotLift.getLowLimit()) {
 				state = LIFTTOTE4;
+				robotLift.autoLift(1);
 			}
 
 			robotLift.autoLift(-24);
+			System.out.println("setting the lift pid to: " + robotLift.liftMotorPID.getSetpoint());
+			//System.out.println("is lift PID enabled?" + robotLift.liftMotorPID.isEnable());
 
 			// Pauses code to simulate lift
 			/*
@@ -754,7 +797,7 @@ public class Autonomous {
 
 		case LIFTTOTE4:
 			System.out.println("in LIFTTOTE4");
-
+			
 			speed = 0;
 			heading = 0;
 			direction = 90;
@@ -766,6 +809,7 @@ public class Autonomous {
 			}
 
 			robotLift.autoLift(12);
+			System.out.println("setting the lift pid to: " + robotLift.liftMotorPID.getSetpoint()); 
 
 			// Pauses code to simulate lift
 			/*
@@ -847,9 +891,125 @@ public class Autonomous {
 
 	}
 	
+	public void autoLine6() {
+		double speed = 0;
+		double heading = 0;
+		double direction = 90;
+		switch (state) {
+		case START4:
+			System.out.println("in START4");
+			
+			startTimeDRIVE = Timer.getFPGATimestamp();
+			state = FIRSTTOTE4;
+			robotDrive.PIDDisable();
+			
+			robotLift.liftMotorPID.enable();
+			break;
+
+		case FIRSTTOTE4:
+			
+			// lift the tote
+
+			robotLift.autoliftTest(true);
+			if (robotLift.onTarget()) {
+				state = LIFTTOTE4;
+			}
+			
+			 
+			break;
+		case LIFTTOTE4:
+			
+			// lift the tote
+
+			robotLift.autoliftTest(false);
+			if (robotLift.onTarget()) {
+				state = TURN904;
+			}
+			
+			 
+			break;	
+
+		
+
+		case TURN904:
+			System.out.println("in 4TURN90");
+			speed = 0;
+			heading = -90;
+			direction = 0;
+			System.out.println("heading = " + heading);
+			System.out.println("speed = " + speed);
+			System.out.println("direction = " + direction);
+
+			robotDrive.driveMecanum(heading, speed, direction);
+
+			System.out.println("Math.abs(robotDrive.getGyro() = "
+					+ Math.abs(robotDrive.getGyro()));
+			if (Math.abs(robotDrive.getGyro() - heading) < 5) {
+				System.out
+						.println("Math.abs(robotDrive.getGyro() - heading is < 5");
+				System.out.println("PIDEnable and Reset Encoder");
+
+				robotDrive.PIDEnable();
+				robotDrive.EncoderReset();
+				state = DRIVESTRAIGHT4;
+			}
+			break;
+
+		case DRIVESTRAIGHT4:
+			
+
+			robotDrive.DriveStraightDistance(-160);
+
+			if (robotDrive.DriveStraightDistance(-160))
+				state = STOP4;
+			break;
+
+		case STOP4:
+			System.out.println("in STOP4");
+		
+			state = DROPTOTE4;
+			//robotDrive.PIDDisable();
+			break;
+
+		case DROPTOTE4:
+			System.out.println("in DROPTOTE4");
+			System.out.println("heading = " + heading);
+			System.out.println("speed = " + speed);
+			System.out.println("direction = " + direction);
+
+			robotLift.autoLift(robotLift.GROUND_LEVEL);
+			if (robotLift.getLowLimit()) {
+				state = BACKUP4;
+				robotDrive.PIDEnable();
+				robotLift.liftMotorPID.disable();
+			}
+
+			break;
+
+		case BACKUP4:
+			System.out.println("in BACKUP4");
+
+			System.out.println("speedd is : " + speed);
+			robotDrive.DriveStraightDistance(-70);
+			state = FINALSTOP4;
+			break;
+
+		case FINALSTOP4:
+			System.out.println("in FINALSTOP4");
+		
+			robotDrive.PIDDisable();
+			break;
+
+		}
+
+	}
+	
 	public void displayRangeFinder() {
 		SmartDashboard.putNumber("RangeFinderDistance",
 				robotLift.measureDistance());
 
 	}
 }
+
+
+

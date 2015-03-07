@@ -1,6 +1,7 @@
 package org.usfirst.frc.team155.robot;
 
 import edu.wpi.first.wpilibj.CANJaguar;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.PIDController;
@@ -29,18 +30,20 @@ public class DRIVE155 {
 	Joystick rightStick = new Joystick(2);
 
 	// MOTORS FOR COMPEITION ROBOT
-	 public Talon left_front;
-	 public Talon right_front;
-	 public Talon left_back;
-	 public Talon right_back;
+	/*
+	 * public Talon left_front; public Talon right_front; public Talon
+	 * left_back; public Talon right_back;
+	 */
 
 	// MOTORS FOR TEST ROBOT
-	/*
+
 	public Jaguar left_front;
 	public Jaguar right_front;
 	public Jaguar left_back;
 	public Jaguar right_back;
-	*/
+	public Jaguar right_Sucker;
+	public Jaguar left_Sucker;
+
 	public RobotDrive myrobot;
 
 	// DRIVE ENCODERS
@@ -65,6 +68,9 @@ public class DRIVE155 {
 	public PIDController PIDGyro;
 	double camKp = .005;
 
+	// Digital inputs
+	DigitalInput suckerSwitch;
+
 	// Encoder Controllers
 	double Front_Right_Kp = .05;
 	double Front_Right_Ki = 0;
@@ -80,17 +86,16 @@ public class DRIVE155 {
 	double Rear_Left_Kd = 0;
 
 	// for the gyro stabilized field oriented drive
-	private double foo = 2;			//more of an integration scaling factor.
+	private double foo = 2; // more of an integration scaling factor.
 	private double headingSetPoint;
 	private double error;
 	private double PIDoutput;
-	private double Kp_FieldOrientedControl=.02;		//not tuned
+	private double Kp_FieldOrientedControl = .02; // not tuned
 	private boolean holdHeading;
 	private boolean prevCentered;
 	private boolean centered;
-	
+
 	double motorScale = 1;
-	
 
 	public DRIVE155(Joystick left, Joystick right, robotMap155 robot) {
 		robotSystem = robot;
@@ -102,17 +107,20 @@ public class DRIVE155 {
 		rightStick = right;
 
 		// MOTORS
-		left_front = new Talon(robotSystem.DRIVE_LEFT_FRONT);
-		right_front = new Talon(robotSystem.DRIVE_RIGHT_FRONT);
-		left_back = new Talon(robotSystem.DRIVE_LEFT_BACK);
-		right_back = new Talon(robotSystem.DRIVE_RIGHT_BACK);
-		
 		/*
+		 * left_front = new Talon(robotSystem.DRIVE_LEFT_FRONT); right_front =
+		 * new Talon(robotSystem.DRIVE_RIGHT_FRONT); left_back = new
+		 * Talon(robotSystem.DRIVE_LEFT_BACK); right_back = new
+		 * Talon(robotSystem.DRIVE_RIGHT_BACK);
+		 */
+		suckerSwitch = new DigitalInput(robot.TOTE_SWITCH);
 		left_front = new Jaguar(robotSystem.DRIVE_LEFT_FRONT);
 		right_front = new Jaguar(robotSystem.DRIVE_RIGHT_FRONT);
 		left_back = new Jaguar(robotSystem.DRIVE_LEFT_BACK);
 		right_back = new Jaguar(robotSystem.DRIVE_RIGHT_BACK);
-		*/
+		left_Sucker = new Jaguar(robotSystem.DRIVE_LEFT_BACK);
+		right_Sucker = new Jaguar(robotSystem.DRIVE_RIGHT_BACK);
+
 		myrobot = new RobotDrive(left_front, left_back, right_front, right_back);
 
 		myrobot.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
@@ -120,43 +128,29 @@ public class DRIVE155 {
 		myrobot.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
 		myrobot.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
 		// ENCODERS
-		Front_Right_Encoder = new Encoder(robotSystem.FRONT_RIGHT_ENCODER_A,
-				robotSystem.FRONT_RIGHT_ENCODER_B);
+		Front_Right_Encoder = new Encoder(robotSystem.FRONT_RIGHT_ENCODER_A, robotSystem.FRONT_RIGHT_ENCODER_B);
 		Front_Right_Encoder.setDistancePerPulse(6 * 3.14159265389 / 500);
-		Front_Left_Encoder = new Encoder(robotSystem.FRONT_LEFT_ENCODER_A,
-				robotSystem.FRONT_LEFT_ENCODER_B);
+		Front_Left_Encoder = new Encoder(robotSystem.FRONT_LEFT_ENCODER_A, robotSystem.FRONT_LEFT_ENCODER_B);
 		Front_Left_Encoder.setDistancePerPulse(6 * 3.14159265389 / 500);
-		Back_Right_Encoder = new Encoder(robotSystem.BACK_RIGHT_ENCODER_A,
-				robotSystem.BACK_RIGHT_ENCODER_B);
+		Back_Right_Encoder = new Encoder(robotSystem.BACK_RIGHT_ENCODER_A, robotSystem.BACK_RIGHT_ENCODER_B);
 		Back_Right_Encoder.setDistancePerPulse(6 * 3.14159265389 / 500);
-		Back_Left_Encoder = new Encoder(robotSystem.BACK_LEFT_ENCODER_A,
-				robotSystem.BACK_LEFT_ENCODER_B);
+		Back_Left_Encoder = new Encoder(robotSystem.BACK_LEFT_ENCODER_A, robotSystem.BACK_LEFT_ENCODER_B);
 		Back_Left_Encoder.setDistancePerPulse(6 * 3.14159265389 / 500);
 
 		// YAW RATE (GYRO)
 		roboGyro = new Gyro(robotSystem.GYRO);
 
 		// CONTROLLER
-		
-		Front_Right_Encoder
-				.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
-		Front_Right_PID = new PIDController(Front_Right_Kp, Front_Right_Ki,
-				Front_Right_Kd, Front_Right_Encoder, right_front);
-		Front_Left_Encoder
-				.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
-		Front_Left_PID = new PIDController(Front_Left_Kp, Front_Left_Ki,
-				Front_Left_Kd, Front_Left_Encoder, left_front);
-		Back_Right_Encoder
-				.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
-		Rear_Right_PID = new PIDController(Rear_Right_Kp, Rear_Right_Ki,
-				Rear_Right_Kd, Back_Right_Encoder, right_back);
-		Back_Left_Encoder
-				.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
-		Rear_Left_PID = new PIDController(Rear_Left_Kp, Rear_Left_Ki,
-				Rear_Left_Kd, Back_Left_Encoder, left_back);
-		
 
-		
+		Front_Right_Encoder.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
+		Front_Right_PID = new PIDController(Front_Right_Kp, Front_Right_Ki, Front_Right_Kd, Front_Right_Encoder, right_front);
+		Front_Left_Encoder.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
+		Front_Left_PID = new PIDController(Front_Left_Kp, Front_Left_Ki, Front_Left_Kd, Front_Left_Encoder, left_front);
+		Back_Right_Encoder.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
+		Rear_Right_PID = new PIDController(Rear_Right_Kp, Rear_Right_Ki, Rear_Right_Kd, Back_Right_Encoder, right_back);
+		Back_Left_Encoder.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
+		Rear_Left_PID = new PIDController(Rear_Left_Kp, Rear_Left_Ki, Rear_Left_Kd, Back_Left_Encoder, left_back);
+
 		Front_Left_PID.setAbsoluteTolerance(3);
 		Front_Right_PID.setAbsoluteTolerance(3);
 		Rear_Left_PID.setAbsoluteTolerance(3);
@@ -167,11 +161,11 @@ public class DRIVE155 {
 		Rear_Right_PID.setOutputRange(-.5, .5);
 
 		// PIDGyro = new PIDController(Kp,Ki,Kd,roboGyro,PIDGyroOut);
-		
-		headingSetPoint=0;
-		holdHeading=true;
-		prevCentered=false;
-		centered=false;
+
+		headingSetPoint = 0;
+		holdHeading = true;
+		prevCentered = false;
+		centered = false;
 	}
 
 	// drive modes
@@ -182,8 +176,7 @@ public class DRIVE155 {
 	// }
 
 	private void mecanum_fieldOriented() {
-		myrobot.mecanumDrive_Cartesian(leftStick.getX(), leftStick.getY(),
-				rightStick.getX(), roboGyro.getAngle());
+		myrobot.mecanumDrive_Cartesian(leftStick.getX(), leftStick.getY(), rightStick.getX(), roboGyro.getAngle());
 	}
 
 	public void driveStraight(double heading, double speed) {
@@ -195,7 +188,8 @@ public class DRIVE155 {
 		else if (turnRate < -maxturnRate)
 			turnRate = -maxturnRate;
 		myrobot.arcadeDrive(speed, turnRate);
-		// SmartDashboard.putNumber("Gyro", roboGyro.getAngle());
+		//
+		SmartDashboard.putNumber("Gyro", roboGyro.getAngle());
 	}
 
 	public void driveMecanum(double heading, double speed, double direction) {
@@ -232,8 +226,7 @@ public class DRIVE155 {
 		// SmartDashboard.putNumber("Motor1 current", pdp.getCurrent(12));
 	}
 
-	public void centerYellowTote(double goalposition, double speed,
-			double toteposition) {
+	public void centerYellowTote(double goalposition, double speed, double toteposition) {
 
 		System.out.println("In centerYellowTote");
 		System.out.println("goalposition = " + goalposition);
@@ -269,9 +262,9 @@ public class DRIVE155 {
 
 		myrobot.mecanumDrive_Cartesian(slideRate, speed, 0, roboGyro.getAngle());
 
-		SmartDashboard.putNumber("toteposition=", toteposition);
-		SmartDashboard.putNumber("error=", error);
-		SmartDashboard.putNumber("sliderate = ", slideRate);
+		// SmartDashboard.putNumber("toteposition=", toteposition);
+		// SmartDashboard.putNumber("error=", error);
+		// SmartDashboard.putNumber("sliderate = ", slideRate);
 	}
 
 	public double getGyro() {
@@ -280,11 +273,11 @@ public class DRIVE155 {
 
 	public void GyroReset() {
 		roboGyro.reset();
-		
-		headingSetPoint=0;
-		holdHeading=true;
-		prevCentered=false;
-		centered=false;
+
+		headingSetPoint = 0;
+		holdHeading = true;
+		prevCentered = false;
+		centered = false;
 
 	}
 
@@ -314,10 +307,10 @@ public class DRIVE155 {
 		// SmartDashboard.putNumber("Motor1 current", pdp.getCurrent(1));
 		// SmartDashboard.putNumber("Motor12 current", pdp.getCurrent(12));
 		// SmartDashboard.putNumber("Motor13 current", pdp.getCurrent(13));
-		// SmartDashboard.putNumber("pdp current", pdp.getVoltage());
+		// SmartDashboard.putNumber("pdp voltage", pdp.getVoltage());
 
 		// mecanum_fieldOriented();
-		team155Mecanum_fieldOriented();
+		team155Mecanum_fieldOriented(leftStick.getX(), leftStick.getY(), rightStick.getX());
 		if (leftStick.getRawButton(1) == true)
 			// PIDEnable();
 			GyroReset();
@@ -326,112 +319,136 @@ public class DRIVE155 {
 		if (leftStick.getRawButton(7) == true)
 			PIDDisable();
 		// DriveStraightDistance(36);
+		SuckorSpit();
 	}
+
 	/*
-	  public void Team155_mecanumDrive_Cartesian(double x, double y, double rotation, double gyroAngle) {
-	        
-	        double xIn = x;
-	        double yIn = y;
-	        double speedConstant = 1000;
-	        // Negate y for the joystick.
-	        yIn = -yIn;
-	        // Compenstate for gyro angle.
-	        double rotated[] = rotateVector(xIn, yIn, gyroAngle);
-	        xIn = rotated[0];
-	        yIn = rotated[1];
+	 * public void Team155_mecanumDrive_Cartesian(double x, double y, double
+	 * rotation, double gyroAngle) {
+	 * 
+	 * double xIn = x; double yIn = y; double speedConstant = 1000; // Negate y
+	 * for the joystick. yIn = -yIn; // Compenstate for gyro angle. double
+	 * rotated[] = rotateVector(xIn, yIn, gyroAngle); xIn = rotated[0]; yIn =
+	 * rotated[1];
+	 * 
+	 * double wheelSpeeds[] = new double[4]; wheelSpeeds[0] = xIn + yIn +
+	 * rotation; //front left wheelSpeeds[2] = -xIn + yIn - rotation; //front
+	 * right wheelSpeeds[1] = -xIn + yIn + rotation; //rear left wheelSpeeds[3]
+	 * = xIn + yIn - rotation; //rear right
+	 * 
+	 * normalize(wheelSpeeds); wheelSpeeds[0] = wheelSpeeds[0] * speedConstant;
+	 * //front left multiply by a speed constant wheelSpeeds[2] = wheelSpeeds[2]
+	 * * speedConstant; //front right wheelSpeeds[1] = wheelSpeeds[1] *
+	 * speedConstant; //rear left wheelSpeeds[3] = wheelSpeeds[3] *
+	 * speedConstant; //rear right
+	 * 
+	 * 
+	 * 
+	 * m_frontLeftMotor.set(wheelSpeeds[MotorType.kFrontLeft_val] *
+	 * m_invertedMotors[MotorType.kFrontLeft_val] * m_maxOutput, m_syncGroup);
+	 * m_frontRightMotor.set(wheelSpeeds[MotorType.kFrontRight_val] *
+	 * m_invertedMotors[MotorType.kFrontRight_val] * m_maxOutput, m_syncGroup);
+	 * m_rearLeftMotor.set(wheelSpeeds[MotorType.kRearLeft_val] *
+	 * m_invertedMotors[MotorType.kRearLeft_val] * m_maxOutput, m_syncGroup);
+	 * m_rearRightMotor.set(wheelSpeeds[MotorType.kRearRight_val] *
+	 * m_invertedMotors[MotorType.kRearRight_val] * m_maxOutput, m_syncGroup);
+	 * 
+	 * if (m_syncGroup != 0) { CANJaguar.updateSyncGroup(m_syncGroup); }
+	 * 
+	 * if (m_safetyHelper != null) m_safetyHelper.feed(); }
+	 * 
+	 * protected static double[] rotateVector(double x, double y, double angle)
+	 * { double cosA = Math.cos(angle * (3.14159 / 180.0)); double sinA =
+	 * Math.sin(angle * (3.14159 / 180.0)); double out[] = new double[2]; out[0]
+	 * = x * cosA - y * sinA; out[1] = x * sinA + y * cosA; return out; }
+	 * 
+	 * protected static void normalize(double wheelSpeeds[]) { double
+	 * maxMagnitude = Math.abs(wheelSpeeds[0]); int i; for (i=1; i<4; i++) {
+	 * double temp = Math.abs(wheelSpeeds[i]); if (maxMagnitude < temp)
+	 * maxMagnitude = temp; } if (maxMagnitude > 1.0) { for (i=0; i<4; i++) {
+	 * wheelSpeeds[i] = wheelSpeeds[i] / maxMagnitude; } } }
+	 */
 
-	        double wheelSpeeds[] = new double[4];
-	        wheelSpeeds[0] = xIn + yIn + rotation; //front left 	
-	        wheelSpeeds[2] = -xIn + yIn - rotation; //front right
-	        wheelSpeeds[1] = -xIn + yIn + rotation; //rear left
-	        wheelSpeeds[3] = xIn + yIn - rotation; //rear right
+	void team155Mecanum_fieldOriented(double LSgetX, double LSgetY, double RSgetX) {
 
-	        normalize(wheelSpeeds);
-	        wheelSpeeds[0] =  wheelSpeeds[0] * speedConstant; //front left 	multiply by a speed constant
-	        wheelSpeeds[2] =  wheelSpeeds[2] * speedConstant; //front right
-	        wheelSpeeds[1] =  wheelSpeeds[1] * speedConstant; //rear left
-	        wheelSpeeds[3] =  wheelSpeeds[3] * speedConstant; //rear right
-	        
-	        
-	        
-	        m_frontLeftMotor.set(wheelSpeeds[MotorType.kFrontLeft_val] * m_invertedMotors[MotorType.kFrontLeft_val] * m_maxOutput, m_syncGroup);
-	        m_frontRightMotor.set(wheelSpeeds[MotorType.kFrontRight_val] * m_invertedMotors[MotorType.kFrontRight_val] * m_maxOutput, m_syncGroup);
-	        m_rearLeftMotor.set(wheelSpeeds[MotorType.kRearLeft_val] * m_invertedMotors[MotorType.kRearLeft_val] * m_maxOutput, m_syncGroup);
-	        m_rearRightMotor.set(wheelSpeeds[MotorType.kRearRight_val] * m_invertedMotors[MotorType.kRearRight_val] * m_maxOutput, m_syncGroup);
+		prevCentered = centered;
 
-	        if (m_syncGroup != 0) {
-	            CANJaguar.updateSyncGroup(m_syncGroup);
-	        }
-
-	        if (m_safetyHelper != null) m_safetyHelper.feed();
-	    }
-	  
-	  protected static double[] rotateVector(double x, double y, double angle) {
-	        double cosA = Math.cos(angle * (3.14159 / 180.0));
-	        double sinA = Math.sin(angle * (3.14159 / 180.0));
-	        double out[] = new double[2];
-	        out[0] = x * cosA - y * sinA;
-	        out[1] = x * sinA + y * cosA;
-	        return out;
-	    }
-	  
-	  protected static void normalize(double wheelSpeeds[]) {
-	        double maxMagnitude = Math.abs(wheelSpeeds[0]);
-	        int i;
-	        for (i=1; i<4; i++) {
-	            double temp = Math.abs(wheelSpeeds[i]);
-	            if (maxMagnitude < temp) maxMagnitude = temp;
-	        }
-	        if (maxMagnitude > 1.0) {
-	            for (i=0; i<4; i++) {
-	                wheelSpeeds[i] = wheelSpeeds[i] / maxMagnitude;
-	            }
-	        }
-	    }
-*/
-	
-	void team155Mecanum_fieldOriented() {
-		
-		prevCentered=centered;
-		
-		
-		//is it centered?
-		if ( Math.abs(rightStick.getX()) < .05) //may need to be upped
-			centered=true;
-		else{
-			headingSetPoint = rightStick.getX() * foo + headingSetPoint;	//must not be centered, so... command to turn
+		// is it centered?
+		if (Math.abs(RSgetX) < .05) // may need to be upped
+			centered = true;
+		else {
+			headingSetPoint = RSgetX * foo + headingSetPoint; // must not be
+																// centered,
+																// so... command
+																// to turn
 			centered = false;
 		}
-		
-		
-		//rising edge detector
-		if ((!prevCentered) && centered)		
-			holdHeading=true;
+
+		// rising edge detector
+		if ((!prevCentered) && centered)
+			holdHeading = true;
 		else
-			holdHeading=false;		//was implied to be false
-		
-		//on a rising edge, set the heading to hold
-		if (holdHeading){
-			headingSetPoint=roboGyro.getAngle();
-			holdHeading=false;
+			holdHeading = false; // was implied to be false
+
+		// on a rising edge, set the heading to hold
+		if (holdHeading) {
+			headingSetPoint = roboGyro.getAngle();
+			holdHeading = false;
 		}
-		
+
 		error = -roboGyro.getAngle() + headingSetPoint;
-		PIDoutput = error*Kp_FieldOrientedControl;
+		PIDoutput = error * Kp_FieldOrientedControl;
+
+		// SmartDashboard.putNumber("heading setpoint is ", headingSetPoint);
+		// SmartDashboard.putNumber("PIDoutput is ", PIDoutput);
+		// SmartDashboard.putNumber("rightStick.getX is ", rightStick.getX());
 		
-		SmartDashboard.putNumber("heading setpoint is ", headingSetPoint);
-		//SmartDashboard.putNumber("PIDoutput is ", PIDoutput);
-		//SmartDashboard.putNumber("rightStick.getX is ", rightStick.getX());
-		
-		if (rightStick.getRawButton(1))
-			motorScale = 1;
-		if (rightStick.getRawButton(2))
-			motorScale = .75;
-		if (rightStick.getRawButton(3))
-			motorScale = .5;
-		
-		myrobot.mecanumDrive_Cartesian(leftStick.getX()*motorScale, leftStick.getY()*motorScale,
-				PIDoutput, roboGyro.getAngle());
+		myrobot.mecanumDrive_Cartesian(LSgetX * motorScale, LSgetY * motorScale, PIDoutput, roboGyro.getAngle());
+	}
+
+	public void SuckorSpit() {
+		/*
+		 * if (rightStick.getRawButton(1)) motorScale = 1; if
+		 * (rightStick.getRawButton(2)) motorScale = .75; if
+		 * (rightStick.getRawButton(3)) motorScale = .5;
+		 */
+		// button 3 does: spit a tote out
+		// button 1 does: suck a tote in
+
+		if (suckerSwitch.get()) { 					// do we have a tote?
+													// yes we do
+			if (rightStick.getRawButton(3)) { 			// if the spit button is pressed...
+				spitOutTote(); 							
+			} else {
+				doNothingWithTote(); 					
+			}
+		} else { 									// we don't have a tote
+			if (!rightStick.getRawButton(1)) { 			// and the button is not pressed.....
+				suckInTote(); 							
+			} else if (rightStick.getRawButton(3)) {	// if the spit button is pressed
+				spitOutTote(); 							
+			} else {
+				doNothingWithTote(); 					// do nothing
+			}
+		}
+		SmartDashboard.putNumber("Right Sucker Motor speed", right_Sucker.getSpeed());
+		SmartDashboard.putNumber("Left Sucker Motor speed", left_Sucker.getSpeed());
+
+	}
+
+	private void suckInTote() {
+		right_Sucker.set(-1);
+		left_Sucker.set(1);
+	}
+
+	private void spitOutTote() {
+		right_Sucker.set(-1);
+		left_Sucker.set(1);
+	}
+
+	private void doNothingWithTote() {
+		right_Sucker.set(0);
+		left_Sucker.set(0);
 	}
 
 	public double EncoderDistance() {
@@ -443,29 +460,29 @@ public class DRIVE155 {
 		System.out.println("in EncoderDistance ");
 		distance_Front_Left = Front_Left_Encoder.getDistance();
 		distance_Back_Left = Back_Left_Encoder.getDistance();
-		distance_Front_Right = Front_Left_Encoder.getDistance();
-		distance_Back_Right = Back_Left_Encoder.getDistance();
-
-		System.out.println("distance_Front_Left = " + distance_Front_Left);
-		System.out.println("distance_Back_Left = " + distance_Back_Left);
-		System.out.println("distance_Front_Right = " + distance_Front_Right);
-		System.out.println("distance_Back_Right = " + distance_Back_Right);
-
+		distance_Front_Right = Front_Right_Encoder.getDistance();
+		distance_Back_Right = Back_Right_Encoder.getDistance();
+		/*
+		 * System.out.println("distance_Front_Left = " + distance_Front_Left);
+		 * System.out.println("distance_Back_Left = " + distance_Back_Left);
+		 * System.out.println("distance_Front_Right = " + distance_Front_Right);
+		 * System.out.println("distance_Back_Right = " + distance_Back_Right);
+		 */
 		// averageDistance = (distance_Front_Left + distance_Back_Left +
 		// distance_Front_Right + distance_Back_Right) / 4;
-		averageDistance = (distance_Front_Left + distance_Back_Left) / 2;
+		averageDistance = (distance_Front_Left + distance_Front_Right) / 2;
 		System.out.println("averageDistance = " + averageDistance);
-		
-		SmartDashboard.putNumber("Average of left side encoder : ",
-				averageDistance);
-		SmartDashboard.putNumber("Back left Encoder Distance : ",
-				distance_Front_Left);
-		SmartDashboard.putNumber("Front left Encoder Distance : ",
-				distance_Front_Left);
-		SmartDashboard.putNumber("Back Right Encoder Distance : ",
-				distance_Back_Right);
-		SmartDashboard.putNumber("Front Right Encoder Distance : ",
-				distance_Front_Right);
+
+		// SmartDashboard.putNumber("Average of left side encoder : ",
+		// averageDistance);
+		// SmartDashboard.putNumber("Back left Encoder Distance2 : ",
+		// distance_Front_Left);
+		// SmartDashboard.putNumber("Front left Encoder Distance2 : ",
+		// distance_Front_Left);
+		// SmartDashboard.putNumber("Back Right Encoder Distance2 : ",
+		// distance_Back_Right);
+		// SmartDashboard.putNumber("Front Right Encoder Distance2 : ",
+		// distance_Front_Right);
 
 		return averageDistance;
 	}
@@ -481,15 +498,15 @@ public class DRIVE155 {
 
 		System.out.println("rate = " + rate);
 		/*
-		SmartDashboard.putNumber("Back left Encoder Rate : ",
-				Back_Left_Encoder.getRate());
-		SmartDashboard.putNumber("Front left Encoder Rate: ",
-				Front_Left_Encoder.getRate());
-		SmartDashboard.putNumber("Back Right Encoder Rate : ",
-				Back_Right_Encoder.getRate());
-		SmartDashboard.putNumber("Front Right Encoder Rate: ",
-				Front_Right_Encoder.getRate());
-		*/
+		 * SmartDashboard.putNumber("Back left Encoder Rate : ",
+		 * Back_Left_Encoder.getRate());
+		 * SmartDashboard.putNumber("Front left Encoder Rate: ",
+		 * Front_Left_Encoder.getRate());
+		 * SmartDashboard.putNumber("Back Right Encoder Rate : ",
+		 * Back_Right_Encoder.getRate());
+		 * SmartDashboard.putNumber("Front Right Encoder Rate: ",
+		 * Front_Right_Encoder.getRate());
+		 */
 	}
 
 	public void EncoderReset() {
@@ -507,17 +524,21 @@ public class DRIVE155 {
 
 	public boolean DriveStraightDistance(double distance) {
 		System.out.println("Drive straight for x distance");
-		SmartDashboard.putNumber("Back left Encoder Distance : ",
-				Back_Left_Encoder.getDistance());
-		SmartDashboard.putNumber("Front left Encoder Distance : ",
-				Front_Left_Encoder.getDistance());
-		SmartDashboard.putNumber("Back Right Encoder Distance : ",
-				Back_Right_Encoder.getDistance());
-		SmartDashboard.putNumber("Front Right Encoder Distance : ",
-				Front_Right_Encoder.getDistance());
-		Front_Right_PID.setSetpoint(-distance);		//this is done because the motors on opposite side of the robot
+		// SmartDashboard.putNumber("Back left Encoder Distance : ",
+		// Back_Left_Encoder.getDistance());
+		// SmartDashboard.putNumber("Front left Encoder Distance : ",
+		// Front_Left_Encoder.getDistance());
+		// SmartDashboard.putNumber("Back Right Encoder Distance : ",
+		// Back_Right_Encoder.getDistance());
+		// SmartDashboard.putNumber("Front Right Encoder Distance : ",
+		// Front_Right_Encoder.getDistance());
+		Front_Right_PID.setSetpoint(-distance); // this is done because the
+												// motors on opposite side of
+												// the robot
 		Front_Left_PID.setSetpoint(distance);
-		Rear_Right_PID.setSetpoint(-distance);		//this is done because the motors on opposite side of the robot
+		Rear_Right_PID.setSetpoint(-distance); // this is done because the
+												// motors on opposite side of
+												// the robot
 		Rear_Left_PID.setSetpoint(distance);
 		return Front_Left_PID.onTarget();
 	}
