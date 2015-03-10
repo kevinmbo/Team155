@@ -45,8 +45,8 @@ public class Lift155 {
 		rangeFinder = new AnalogInput(robot.RANGE_FINDER);
 		liftEncoder = new Encoder(robotSystem.LIFT_ENCODER_A,
 				robotSystem.LIFT_ENCODER_B);
-		liftEncoder.setDistancePerPulse(.01); // Competion bot
-		// liftEncoder.setDistancePerPulse(.03); // practice bot
+		//liftEncoder.setDistancePerPulse(.01); // Competion bot
+		liftEncoder.setDistancePerPulse(.03); // practice bot
 		liftEncoder
 				.setPIDSourceParameter(PIDSource.PIDSourceParameter.kDistance);
 		liftMotorPID = new PIDController(kP, kI, kD, liftEncoder, liftDrive);

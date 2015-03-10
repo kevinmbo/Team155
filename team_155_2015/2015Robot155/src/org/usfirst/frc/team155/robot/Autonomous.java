@@ -49,6 +49,21 @@ public class Autonomous {
 	final int DROPTOTE2 = 8;
 	final int BACKUP2 = 9;
 	final int FINALSTOP2 = 10;
+	
+	//MEGA MODE
+	final int STARTMM = 0;
+	final int LIFTMM = 1;
+	final int DRIVESIDEWAYSMM = 2;
+	final int LONGFORWARDMM = 3;
+	final int DRIVESIDEBACKMM = 4;
+	final int SHORTFORWARDMM = 5;
+	final int DROPARMMM = 6;
+	final int DRIVESIDELONGMM = 7;
+	final int FINALDROPMM = 8;
+	final int BACKUPMM = 9;
+	final int FINALSTOPMM = 10;
+
+	
 	// start3
 	final int START3 = 0;
 	final int DRIVESIDEWAYS3 = 1;
@@ -1008,6 +1023,112 @@ public class Autonomous {
 		SmartDashboard.putNumber("RangeFinderDistance",
 				robotLift.measureDistance());
 
+	}
+	
+	public void MegaMode() {
+		int toteCount= 0;
+		double shortSideways =-80;
+		double longSiddeways = -160;
+		double shortForward = 24;
+		double longForward = 160;
+		double backup = 24;
+		switch (state) {
+		case STARTMM:			
+			startTimeDRIVE = Timer.getFPGATimestamp();
+			state = LIFTMM;
+			//robotDrive.PIDEnable();
+			break;
+		case LIFTMM:
+			
+			robotLift.autoLift(24);
+			if (robotLift.onTarget()) {
+				robotDrive.EncoderReset();
+				if(toteCount >= 2){
+					state = DRIVESIDELONGMM;
+				}else{
+					state = DRIVESIDEWAYSMM;
+				}
+			}
+			break;
+
+		case DRIVESIDEWAYSMM:
+			
+			robotDrive.team155Mecanum_fieldOriented(.5, 0, 0);
+			
+			if (robotDrive.EncoderDistance()<shortSideways){
+				state = LONGFORWARDMM;
+				robotDrive.EncoderReset();
+			}
+			//robotDrive.DriveSideDistance(160);
+
+			//if (robotDrive.DriveSideDistance(160))
+				//state = FINALSTOP3;
+			break;
+
+		case LONGFORWARDMM:
+			if (robotDrive.DriveStraightDistance(longForward)){
+				state = DRIVESIDEBACKMM;
+			robotDrive.EncoderReset();
+			}
+			break;
+			
+		case DRIVESIDEBACKMM:
+			robotDrive.team155Mecanum_fieldOriented(-0.5, 0, 0);
+			
+			if (robotDrive.EncoderDistance()>-shortSideways){
+				state = SHORTFORWARDMM;
+				robotDrive.EncoderReset();
+			}
+			break;
+		case SHORTFORWARDMM:
+			robotDrive.toteSuck();
+			if (robotDrive.DriveStraightDistance(shortForward) || robotDrive.suckerSwitch.get()){
+				state = DROPARMMM;
+				if (!robotDrive.suckerSwitch.get()){
+					state = DRIVESIDELONGMM;
+				}
+			robotDrive.EncoderReset();
+			}
+			break;
+		case DROPARMMM:
+			robotLift.autoLift(-5);
+			if (robotLift.getLowLimit()) {
+				state = LIFTMM;
+				toteCount++;
+				robotLift.liftEncoder.reset();
+				robotLift.autoLift(0);
+			}
+			break;
+			
+		case DRIVESIDELONGMM:
+			robotDrive.team155Mecanum_fieldOriented(.5, 0, 0);
+			
+			if (robotDrive.EncoderDistance()<longSiddeways){
+				state = FINALDROPMM;
+				robotDrive.EncoderReset();
+			}
+			break;
+		case FINALDROPMM:
+			robotLift.autoLift(-5);
+			if (robotLift.getLowLimit()) {
+				state = BACKUPMM;
+				robotLift.liftMotorPID.disable();
+			}
+			break;
+			
+		case BACKUPMM:
+			if (robotDrive.DriveStraightDistance(backup)){
+				state = FINALSTOPMM;
+			robotDrive.EncoderReset();
+			}
+			break;
+		case FINALSTOPMM:
+			System.out.println("in FINALSTOP2");
+			
+			robotDrive.PIDDisable();
+			break;
+
+		}
 	}
 }
 

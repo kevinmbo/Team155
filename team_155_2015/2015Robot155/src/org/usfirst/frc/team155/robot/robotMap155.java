@@ -45,13 +45,13 @@ public class robotMap155 {
     public final int FRONT_RIGHT_ENCODER_B = 3;
     public final int FRONT_LEFT_ENCODER_A = 4;
     public final int FRONT_LEFT_ENCODER_B = 5;
-    public final int BACK_RIGHT_ENCODER_A = 7;
+    public final int BACK_RIGHT_ENCODER_A = 10;// this was 7
     public final int BACK_RIGHT_ENCODER_B = 6;
-    public final int BACK_LEFT_ENCODER_A = 8;
-    public final int BACK_LEFT_ENCODER_B = 9;
-    public final int TOTE_SWITCH = 10;
-    public final int LOW_LIMIT = 11;
-    public final int HIGH_LIMIT = 12;
+    public final int BACK_LEFT_ENCODER_A = 11;//8
+    public final int BACK_LEFT_ENCODER_B = 12;//9
+    public final int TOTE_SWITCH = 7;// 10
+    public final int LOW_LIMIT = 8;// 11+6
+    public final int HIGH_LIMIT = 9;// 12
     
     
     //relays
@@ -71,12 +71,13 @@ public class robotMap155 {
     //	call as robotSystem.dig1.get();
     DigitalInput dig1;
     DigitalInput toteSwitch;
+    
 
 
     public robotMap155() {
       // dig1 = new DigitalInput(DIG_IO_0);
 
-        toteSwitch = new DigitalInput(TOTE_SWITCH);
+        //toteSwitch = new DigitalInput(TOTE_SWITCH);
 
     }
 

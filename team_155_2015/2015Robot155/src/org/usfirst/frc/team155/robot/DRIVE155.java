@@ -34,13 +34,13 @@ public class DRIVE155 {
 	 * public Talon left_front; public Talon right_front; public Talon
 	 * left_back; public Talon right_back;
 	 */
-
 	// MOTORS FOR TEST ROBOT
-
 	public Jaguar left_front;
 	public Jaguar right_front;
 	public Jaguar left_back;
 	public Jaguar right_back;
+
+	// MOTORS TO SUCK AND SPIT TOTE
 	public Jaguar right_Sucker;
 	public Jaguar left_Sucker;
 
@@ -106,20 +106,26 @@ public class DRIVE155 {
 		leftStick = left;
 		rightStick = right;
 
-		// MOTORS
+		// MOTORS FOR COMPEITION ROBOT
 		/*
 		 * left_front = new Talon(robotSystem.DRIVE_LEFT_FRONT); right_front =
 		 * new Talon(robotSystem.DRIVE_RIGHT_FRONT); left_back = new
 		 * Talon(robotSystem.DRIVE_LEFT_BACK); right_back = new
 		 * Talon(robotSystem.DRIVE_RIGHT_BACK);
 		 */
-		suckerSwitch = new DigitalInput(robot.TOTE_SWITCH);
+
+		// MOTORS FOR TEST ROBOT
 		left_front = new Jaguar(robotSystem.DRIVE_LEFT_FRONT);
 		right_front = new Jaguar(robotSystem.DRIVE_RIGHT_FRONT);
 		left_back = new Jaguar(robotSystem.DRIVE_LEFT_BACK);
 		right_back = new Jaguar(robotSystem.DRIVE_RIGHT_BACK);
-		left_Sucker = new Jaguar(robotSystem.DRIVE_LEFT_BACK);
-		right_Sucker = new Jaguar(robotSystem.DRIVE_RIGHT_BACK);
+
+		// MOTORS TO SUCK AND SPIT TOTE
+		left_Sucker = new Jaguar(robotSystem.PWM5);
+		right_Sucker = new Jaguar(robotSystem.PWM6);
+
+		doNothingWithTote();
+		suckerSwitch = new DigitalInput(robot.TOTE_SWITCH);
 
 		myrobot = new RobotDrive(left_front, left_back, right_front, right_back);
 
@@ -402,7 +408,7 @@ public class DRIVE155 {
 		// SmartDashboard.putNumber("heading setpoint is ", headingSetPoint);
 		// SmartDashboard.putNumber("PIDoutput is ", PIDoutput);
 		// SmartDashboard.putNumber("rightStick.getX is ", rightStick.getX());
-		
+
 		myrobot.mecanumDrive_Cartesian(LSgetX * motorScale, LSgetY * motorScale, PIDoutput, roboGyro.getAngle());
 	}
 
@@ -415,20 +421,23 @@ public class DRIVE155 {
 		// button 3 does: spit a tote out
 		// button 1 does: suck a tote in
 
-		if (suckerSwitch.get()) { 					// do we have a tote?
-													// yes we do
-			if (rightStick.getRawButton(3)) { 			// if the spit button is pressed...
-				spitOutTote(); 							
+		if (suckerSwitch.get()) { // do we have a tote?
+									// yes we do
+			if (rightStick.getRawButton(2)) { // if the spit button is
+												// pressed...
+				spitOutTote();
 			} else {
-				doNothingWithTote(); 					
+				doNothingWithTote();
 			}
-		} else { 									// we don't have a tote
-			if (!rightStick.getRawButton(1)) { 			// and the button is not pressed.....
-				suckInTote(); 							
-			} else if (rightStick.getRawButton(3)) {	// if the spit button is pressed
-				spitOutTote(); 							
+		} else { // we don't have a tote
+			if (rightStick.getRawButton(1)) { // and the button is not
+												// pressed.....
+				suckInTote();
+			} else if (rightStick.getRawButton(2)) { // if the spit button is
+														// pressed
+				spitOutTote();
 			} else {
-				doNothingWithTote(); 					// do nothing
+				doNothingWithTote();
 			}
 		}
 		SmartDashboard.putNumber("Right Sucker Motor speed", right_Sucker.getSpeed());
@@ -436,17 +445,17 @@ public class DRIVE155 {
 
 	}
 
-	private void suckInTote() {
-		right_Sucker.set(-1);
-		left_Sucker.set(1);
+	public void suckInTote() {
+		right_Sucker.set(-.5);
+		left_Sucker.set(.5);
 	}
 
-	private void spitOutTote() {
-		right_Sucker.set(-1);
-		left_Sucker.set(1);
+	public void spitOutTote() {
+		right_Sucker.set(.5);
+		left_Sucker.set(-.5);
 	}
 
-	private void doNothingWithTote() {
+	public void doNothingWithTote() {
 		right_Sucker.set(0);
 		left_Sucker.set(0);
 	}
@@ -570,6 +579,14 @@ public class DRIVE155 {
 		Front_Right_PID.reset();
 		Rear_Left_PID.reset();
 		Rear_Right_PID.reset();
+	}
+
+	public void toteSuck() {
+		if (suckerSwitch.get()) {
+			doNothingWithTote();
+		} else {
+			suckInTote();
+		}
 	}
 
 }

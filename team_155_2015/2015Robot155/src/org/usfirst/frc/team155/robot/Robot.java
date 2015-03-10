@@ -28,7 +28,7 @@ public class Robot extends IterativeRobot {
 	Joystick liftStick;
 	Autonomous Auto155;
 	//Vision155 robotVision;
-	CameraThread cameraThread;
+	//CameraThread cameraThread;
 	SendableChooser autoChooser;
 	private int mode=1;
 	private int modename=0;
@@ -41,19 +41,19 @@ public class Robot extends IterativeRobot {
     	robot = new robotMap155();
     	robotLift = new Lift155(robot, liftStick);
     	robotDrive = new DRIVE155(leftStick, rightStick, robot);
-    	cameraThread = new CameraThread();
+    	//cameraThread = new CameraThread();
     	//cameraThread.setPriority(Thread.MIN_PRIORITY);
-    	cameraThread.start();
+    	//cameraThread.start();
     
     	//robotVision = new Vision155();
     	//Auto155 = new Autonomous(robotDrive, robotLift, robot, robotVision);
-    	Auto155 = new Autonomous(robotDrive, robotLift, robot, cameraThread);
+    	//Auto155 = new Autonomous(robotDrive, robotLift, robot, cameraThread);
     	autoChooser = new SendableChooser();
     	autoChooser.addDefault("default, do nothing ", 1);
     	autoChooser.addObject("Push Straight", 2);
     	autoChooser.addObject("Push Both Sideways", 3);
     	autoChooser.addObject("Grab and Go Sideways", 4);
-    	
+    	autoChooser.addObject("MEGA MODE ", 5);
     	
     	SmartDashboard.putData("Automodechooser", autoChooser);
     }
@@ -69,7 +69,7 @@ public class Robot extends IterativeRobot {
     	mode = (int) autoChooser.getSelected();
     	Auto155.drivestate = 1;
     	Auto155.state = 0;
-    	cameraThread.enableProcessing();
+    	//cameraThread.enableProcessing();
     	
     }
     /**
@@ -96,7 +96,9 @@ public class Robot extends IterativeRobot {
     			modename =4;
     			Auto155.autoLine7(); 
     			break;
-    		
+    		case 5:
+    			modename = 5;
+    			Auto155.MegaMode();
     	}	
     	//Auto155.autoLine();		//code to pick up/stack 3 totes and move into scoring zone
     	//Auto155.autoLine3();  //code to push tote/barrel sideways into scoring zone 
@@ -111,7 +113,7 @@ public class Robot extends IterativeRobot {
     }
 
     public void teleopInit() {
-    	cameraThread.disableProcessing();
+    	//cameraThread.disableProcessing();
     	robotDrive.PIDDisable();
         
     }
@@ -127,7 +129,7 @@ public class Robot extends IterativeRobot {
     		//robotVision.run();
     		//robotDrive.EncoderDistance();
     		//robotDrive.EncoderRate();
-    		Auto155.displayRangeFinder();
+    		//Auto155.displayRangeFinder();
         	SmartDashboard.putNumber("Gyro", robotDrive.roboGyro.getAngle());
     		
     }
