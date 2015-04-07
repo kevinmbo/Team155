@@ -28,7 +28,7 @@ public class Robot extends IterativeRobot {
 	Joystick liftStick;
 	Autonomous Auto155;
 	//Vision155 robotVision;
-	//CameraThread cameraThread;
+	CameraThread cameraThread;
 	SendableChooser autoChooser;
 	private int mode=1;
 	private int modename=0;
@@ -41,19 +41,19 @@ public class Robot extends IterativeRobot {
     	robot = new robotMap155();
     	robotLift = new Lift155(robot, liftStick);
     	robotDrive = new DRIVE155(leftStick, rightStick, robot);
-    	//cameraThread = new CameraThread();
-    	//cameraThread.setPriority(Thread.MIN_PRIORITY);
-    	//cameraThread.start();
+    	cameraThread = new CameraThread();
+    	cameraThread.setPriority(Thread.MIN_PRIORITY);
+    	cameraThread.start();
     
     	//robotVision = new Vision155();
     	//Auto155 = new Autonomous(robotDrive, robotLift, robot, robotVision);
-    	//Auto155 = new Autonomous(robotDrive, robotLift, robot, cameraThread);
+    	Auto155 = new Autonomous(robotDrive, robotLift, robot, cameraThread);
     	autoChooser = new SendableChooser();
     	autoChooser.addDefault("default, do nothing ", 1);
     	autoChooser.addObject("Push Straight", 2);
     	autoChooser.addObject("Push Both Sideways", 3);
     	autoChooser.addObject("Grab and Go Sideways", 4);
-    	autoChooser.addObject("MEGA MODE ", 5);
+    	autoChooser.addObject("Short Backup ", 5);
     	
     	SmartDashboard.putData("Automodechooser", autoChooser);
     }
@@ -63,12 +63,13 @@ public class Robot extends IterativeRobot {
     	robotDrive.GyroReset();
     	//robotDrive.PIDEnable();
     	
-    	//robotDrive.EncoderReset();
-    	//CameraThread.run();
+    	robotDrive.EncoderReset();
+    	
     	Auto155.BOX_COUNTER = 0;
     	mode = (int) autoChooser.getSelected();
     	Auto155.drivestate = 1;
     	Auto155.state = 0;
+    	cameraThread.disableProcessing();
     	//cameraThread.enableProcessing();
     	
     }
@@ -98,11 +99,8 @@ public class Robot extends IterativeRobot {
     			break;
     		case 5:
     			modename = 5;
-    			Auto155.MegaMode();
+    			Auto155.driveBackToAutoZone();
     	}	
-    	//Auto155.autoLine();		//code to pick up/stack 3 totes and move into scoring zone
-    	//Auto155.autoLine3();  //code to push tote/barrel sideways into scoring zone 
-    	//Auto155.autoLine4();  //code to pick up 1 tote, turn, and move into scoring zone
     	//Auto155.liftTest();	
     	//robotVision.run();
     	//robotDrive.DriveSideDistance(84);
@@ -113,8 +111,9 @@ public class Robot extends IterativeRobot {
     }
 
     public void teleopInit() {
-    	//cameraThread.disableProcessing();
+    	cameraThread.disableProcessing();
     	robotDrive.PIDDisable();
+    	robotDrive.motorScale=1.34;
         
     }
     

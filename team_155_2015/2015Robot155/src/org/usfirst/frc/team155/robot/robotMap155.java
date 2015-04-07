@@ -8,7 +8,7 @@ package org.usfirst.frc.team155.robot;
 
 
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 
 /**
  *
@@ -45,14 +45,48 @@ public class robotMap155 {
     public final int FRONT_RIGHT_ENCODER_B = 3;
     public final int FRONT_LEFT_ENCODER_A = 4;
     public final int FRONT_LEFT_ENCODER_B = 5;
-    public final int BACK_RIGHT_ENCODER_A = 10;// this was 7
+    public final int BACK_RIGHT_ENCODER_A = 7;// this was 7
     public final int BACK_RIGHT_ENCODER_B = 6;
-    public final int BACK_LEFT_ENCODER_A = 11;//8
-    public final int BACK_LEFT_ENCODER_B = 12;//9
+    public final int BACK_LEFT_ENCODER_A = 8;//8
+    public final int BACK_LEFT_ENCODER_B = 9;//9
     public final int TOTE_SWITCH = 7;// 10
-    public final int LOW_LIMIT = 8;// 11+6
+    public final int LOW_LIMIT = 8;// 11
     public final int HIGH_LIMIT = 9;// 12
     
+    //buttons
+    public final int GYRO_RESET = 1;
+    public final int ENCODER_RESET = 2;
+    public final int LEFTSTICK_3 = 3;
+    public final int LEFTSTICK_4 = 4;
+    public final int LEFTSTICK_5 = 5;
+    public final int LEFTSTICK_6 = 6;
+    public final int PID_DISABLE = 7;
+    public final int LEFTSTICK_8 = 8;
+    public final int LEFTSTICK_9 = 9;
+    public final int LEFTSTICK_10 = 10;
+    public final int LEFTSTICK_11 = 11;
+    public final int SUCK_TOTE = 1;
+    public final int SPIT_TOTE = 2;
+    public final int THREE_QUARTER_SPEED = 3;
+    public final int FULL_SPEED = 4;
+    public final int HALF_SPEED = 5;
+    public final int RIGHTSTICK_6 = 6;
+    public final int RIGHTSTICK_7 = 7;
+    public final int RIGHTSTICK_8 = 8;
+    public final int RIGHTSTICK_9 = 9;
+    public final int TOTE_ARM_UP = 10;
+    public final int TOTE_ARM_DOWN = 11;
+    public final int BOUNCE = 1;  
+    public final int ARMSTICK_2 = 2;
+    public final int ARMSTICK_3 = 3;
+    public final int ARMSTICK_4 = 4;
+    public final int ARMSTICK_5 = 5;
+    public final int ARMSTICK_6 = 6;
+    public final int ARMSTICK_7 = 7;
+    public final int ARMSTICK_8 = 8;
+    public final int ARMSTICK_9 = 9;
+    public final int ARMSTICK_10 = 10;
+    public final int ARMSTICK_11 = 11;
     
     //relays
     public final int RELAY_0 = 0;

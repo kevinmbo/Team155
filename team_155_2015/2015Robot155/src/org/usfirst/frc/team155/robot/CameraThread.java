@@ -366,7 +366,7 @@ public class CameraThread extends Thread {
 
 		// Send masked image to dashboard to assist in tweaking mask.
 		// CameraServer.getInstance().setImage(frame);
-		CameraServer.getInstance().setImage(binaryFrame);
+		//CameraServer.getInstance().setImage(binaryFrame);
 
 		// filter out small particles
 		float areaMin = (float) SmartDashboard.getNumber("Area min %",
@@ -429,7 +429,7 @@ public class CameraThread extends Thread {
 			// SmartDashboard.putNumber("Index of tote", tempindex);
 			horizontal = (particles.get(tempindex).BoundingRectLeft + particles
 					.get(tempindex).BoundingRectRight) / 2;
-			System.out.println("x coord1 =" + horizontal);
+			//System.out.println("x coord1 =" + horizontal);
 			// vertical = (particles.get(tempindex).BoundingRectTop +
 			// particles
 			// .get(tempindex).BoundingRectBottom) / 2;

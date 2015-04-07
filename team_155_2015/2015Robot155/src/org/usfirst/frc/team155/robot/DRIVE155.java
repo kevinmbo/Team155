@@ -1,9 +1,10 @@
 package org.usfirst.frc.team155.robot;
 
-import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Jaguar;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PIDSource;
@@ -11,7 +12,7 @@ import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Gyro;
-import edu.wpi.first.wpilibj.Timer;
+//import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.RobotDrive.MotorType;
 import edu.wpi.first.wpilibj.communication.UsageReporting;
@@ -30,19 +31,23 @@ public class DRIVE155 {
 	Joystick rightStick = new Joystick(2);
 
 	// MOTORS FOR COMPEITION ROBOT
-	/*
-	 * public Talon left_front; public Talon right_front; public Talon
-	 * left_back; public Talon right_back;
-	 */
-	// MOTORS FOR TEST ROBOT
-	public Jaguar left_front;
-	public Jaguar right_front;
-	public Jaguar left_back;
-	public Jaguar right_back;
+
+	public Talon left_front;
+	public Talon right_front;
+	public Talon left_back;
+	public Talon right_back;
 
 	// MOTORS TO SUCK AND SPIT TOTE
-	public Jaguar right_Sucker;
-	public Jaguar left_Sucker;
+	public Victor right_Sucker;
+	public Victor left_Sucker;
+
+	/*
+	 * // MOTORS FOR TEST ROBOT public Jaguar left_front; public Jaguar
+	 * right_front; public Jaguar left_back; public Jaguar right_back;
+	 * 
+	 * // MOTORS TO SUCK AND SPIT TOTE public Jaguar right_Sucker; public Jaguar
+	 * left_Sucker;
+	 */
 
 	public RobotDrive myrobot;
 
@@ -96,6 +101,12 @@ public class DRIVE155 {
 	private boolean centered;
 
 	double motorScale = 1;
+	
+	//SOLENOIDS
+	DoubleSolenoid sol;
+	private final int UP = 0;
+	private final int DOWN = 1;
+	private int armState = DOWN;
 
 	public DRIVE155(Joystick left, Joystick right, robotMap155 robot) {
 		robotSystem = robot;
@@ -105,25 +116,28 @@ public class DRIVE155 {
 		// JOYSTICKS - NEEDS MORE APPROPRIATE NAMES
 		leftStick = left;
 		rightStick = right;
-
+		
 		// MOTORS FOR COMPEITION ROBOT
-		/*
-		 * left_front = new Talon(robotSystem.DRIVE_LEFT_FRONT); right_front =
-		 * new Talon(robotSystem.DRIVE_RIGHT_FRONT); left_back = new
-		 * Talon(robotSystem.DRIVE_LEFT_BACK); right_back = new
-		 * Talon(robotSystem.DRIVE_RIGHT_BACK);
-		 */
+		left_front = new Talon(robotSystem.DRIVE_LEFT_FRONT);
+		right_front = new Talon(robotSystem.DRIVE_RIGHT_FRONT);
+		left_back = new Talon(robotSystem.DRIVE_LEFT_BACK);
+		right_back = new Talon(robotSystem.DRIVE_RIGHT_BACK);
+		// MOTORS TO SUCK AND SPIT TOTE
+		left_Sucker = new Victor(robotSystem.PWM5);
+		right_Sucker = new Victor(robotSystem.PWM6);
 
 		// MOTORS FOR TEST ROBOT
-		left_front = new Jaguar(robotSystem.DRIVE_LEFT_FRONT);
-		right_front = new Jaguar(robotSystem.DRIVE_RIGHT_FRONT);
-		left_back = new Jaguar(robotSystem.DRIVE_LEFT_BACK);
-		right_back = new Jaguar(robotSystem.DRIVE_RIGHT_BACK);
-
-		// MOTORS TO SUCK AND SPIT TOTE
-		left_Sucker = new Jaguar(robotSystem.PWM5);
-		right_Sucker = new Jaguar(robotSystem.PWM6);
-
+		/*
+		 * left_front = new Jaguar(robotSystem.DRIVE_LEFT_FRONT); right_front =
+		 * new Jaguar(robotSystem.DRIVE_RIGHT_FRONT); left_back = new
+		 * Jaguar(robotSystem.DRIVE_LEFT_BACK); right_back = new
+		 * Jaguar(robotSystem.DRIVE_RIGHT_BACK);
+		 * 
+		 * 
+		 * // MOTORS TO SUCK AND SPIT TOTE left_Sucker = new
+		 * Jaguar(robotSystem.PWM5); right_Sucker = new
+		 * Jaguar(robotSystem.PWM6);
+		 */
 		doNothingWithTote();
 		suckerSwitch = new DigitalInput(robot.TOTE_SWITCH);
 
@@ -172,6 +186,8 @@ public class DRIVE155 {
 		holdHeading = true;
 		prevCentered = false;
 		centered = false;
+		
+		sol = new DoubleSolenoid(robot.GRIPPER_SIDE_A, robot.GRIPPER_SIDE_B);
 	}
 
 	// drive modes
@@ -316,16 +332,26 @@ public class DRIVE155 {
 		// SmartDashboard.putNumber("pdp voltage", pdp.getVoltage());
 
 		// mecanum_fieldOriented();
+
+		if (rightStick.getRawButton(robotSystem.FULL_SPEED)) {// full speed
+			motorScale = 1;
+		} else if (rightStick.getRawButton(robotSystem.HALF_SPEED)) {// half speed
+			motorScale = 2;
+		} else if (rightStick.getRawButton(robotSystem.THREE_QUARTER_SPEED)) {// 3/4 speed
+			motorScale = 1.34;
+		} 
 		team155Mecanum_fieldOriented(leftStick.getX(), leftStick.getY(), rightStick.getX());
-		if (leftStick.getRawButton(1) == true)
+
+		// System.out.println("motorscale is "+ motorScale);
+		if (leftStick.getRawButton(robotSystem.GYRO_RESET) == true)
 			// PIDEnable();
 			GyroReset();
-		if (leftStick.getRawButton(2) == true)
+		if (leftStick.getRawButton(robotSystem.ENCODER_RESET) == true)
 			EncoderReset();
-		if (leftStick.getRawButton(7) == true)
+		if (leftStick.getRawButton(robotSystem.PID_DISABLE) == true)
 			PIDDisable();
 		// DriveStraightDistance(36);
-		SuckorSpit();
+		toteArm();
 	}
 
 	/*
@@ -383,10 +409,12 @@ public class DRIVE155 {
 		if (Math.abs(RSgetX) < .05) // may need to be upped
 			centered = true;
 		else {
-			headingSetPoint = RSgetX * foo + headingSetPoint; // must not be
-																// centered,
-																// so... command
-																// to turn
+			headingSetPoint = RSgetX * foo / motorScale + headingSetPoint; // must
+																			// not
+																			// be
+			// centered,
+			// so... command
+			// to turn
 			centered = false;
 		}
 
@@ -409,7 +437,7 @@ public class DRIVE155 {
 		// SmartDashboard.putNumber("PIDoutput is ", PIDoutput);
 		// SmartDashboard.putNumber("rightStick.getX is ", rightStick.getX());
 
-		myrobot.mecanumDrive_Cartesian(LSgetX * motorScale, LSgetY * motorScale, PIDoutput, roboGyro.getAngle());
+		myrobot.mecanumDrive_Cartesian(LSgetX / motorScale, LSgetY / motorScale, PIDoutput, roboGyro.getAngle());
 	}
 
 	public void SuckorSpit() {
@@ -423,17 +451,17 @@ public class DRIVE155 {
 
 		if (suckerSwitch.get()) { // do we have a tote?
 									// yes we do
-			if (rightStick.getRawButton(2)) { // if the spit button is
+			if (rightStick.getRawButton(robotSystem.SPIT_TOTE)) { // if the spit button is
 												// pressed...
 				spitOutTote();
 			} else {
 				doNothingWithTote();
 			}
 		} else { // we don't have a tote
-			if (rightStick.getRawButton(1)) { // and the button is not
+			if (rightStick.getRawButton(robotSystem.SUCK_TOTE)) { // and the button is not
 												// pressed.....
 				suckInTote();
-			} else if (rightStick.getRawButton(2)) { // if the spit button is
+			} else if (rightStick.getRawButton(robotSystem.SPIT_TOTE)) { // if the spit button is
 														// pressed
 				spitOutTote();
 			} else {
@@ -442,6 +470,7 @@ public class DRIVE155 {
 		}
 		SmartDashboard.putNumber("Right Sucker Motor speed", right_Sucker.getSpeed());
 		SmartDashboard.putNumber("Left Sucker Motor speed", left_Sucker.getSpeed());
+		SmartDashboard.putBoolean("Tote Switch", suckerSwitch.get());
 
 	}
 
@@ -466,7 +495,7 @@ public class DRIVE155 {
 		double distance_Back_Right;
 		double distance_Front_Right;
 		double averageDistance;
-		System.out.println("in EncoderDistance ");
+		// System.out.println("in EncoderDistance ");
 		distance_Front_Left = Front_Left_Encoder.getDistance();
 		distance_Back_Left = Back_Left_Encoder.getDistance();
 		distance_Front_Right = Front_Right_Encoder.getDistance();
@@ -479,8 +508,8 @@ public class DRIVE155 {
 		 */
 		// averageDistance = (distance_Front_Left + distance_Back_Left +
 		// distance_Front_Right + distance_Back_Right) / 4;
-		averageDistance = (distance_Front_Left + distance_Front_Right) / 2;
-		System.out.println("averageDistance = " + averageDistance);
+		averageDistance = (-distance_Back_Left + -distance_Back_Right) / 2;
+		// System.out.println("averageDistance = " + averageDistance);
 
 		// SmartDashboard.putNumber("Average of left side encoder : ",
 		// averageDistance);
@@ -533,14 +562,10 @@ public class DRIVE155 {
 
 	public boolean DriveStraightDistance(double distance) {
 		System.out.println("Drive straight for x distance");
-		// SmartDashboard.putNumber("Back left Encoder Distance : ",
-		// Back_Left_Encoder.getDistance());
-		// SmartDashboard.putNumber("Front left Encoder Distance : ",
-		// Front_Left_Encoder.getDistance());
-		// SmartDashboard.putNumber("Back Right Encoder Distance : ",
-		// Back_Right_Encoder.getDistance());
-		// SmartDashboard.putNumber("Front Right Encoder Distance : ",
-		// Front_Right_Encoder.getDistance());
+		SmartDashboard.putNumber("Back left Encoder Distance : ", Back_Left_Encoder.getDistance());
+		SmartDashboard.putNumber("Front left Encoder Distance : ", Front_Left_Encoder.getDistance());
+		SmartDashboard.putNumber("Back Right Encoder Distance : ", Back_Right_Encoder.getDistance());
+		SmartDashboard.putNumber("Front Right Encoder Distance : ", Front_Right_Encoder.getDistance());
 		Front_Right_PID.setSetpoint(-distance); // this is done because the
 												// motors on opposite side of
 												// the robot
@@ -549,7 +574,7 @@ public class DRIVE155 {
 												// motors on opposite side of
 												// the robot
 		Rear_Left_PID.setSetpoint(distance);
-		return Front_Left_PID.onTarget();
+		return Rear_Left_PID.onTarget();
 	}
 
 	public boolean DriveSideDistance(double distance) {
@@ -560,7 +585,7 @@ public class DRIVE155 {
 		Front_Left_PID.setSetpoint(-adjusted);
 		Rear_Right_PID.setSetpoint(adjusted);
 		Rear_Left_PID.setSetpoint(adjusted);
-		return Front_Left_PID.onTarget();
+		return Rear_Right_PID.onTarget();
 	}
 
 	public void PIDEnable() {
@@ -586,6 +611,26 @@ public class DRIVE155 {
 			doNothingWithTote();
 		} else {
 			suckInTote();
+		}
+	}
+	
+	public void toteArm() {
+		
+		
+		switch(armState){
+		case DOWN:
+			sol.set(DoubleSolenoid.Value.kForward);
+			SuckorSpit();
+			if (rightStick.getRawButton(robotSystem.TOTE_ARM_DOWN))  // if the spit is pressed...
+				armState = UP;
+			break;
+		case UP:
+			sol.set(DoubleSolenoid.Value.kReverse);
+			doNothingWithTote();
+			if (rightStick.getRawButton(robotSystem.TOTE_ARM_UP))
+				armState = DOWN;
+			break;
+
 		}
 	}
 
